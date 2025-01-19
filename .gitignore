@@ -1,0 +1,25 @@
+# Node.js dependencies
+node_modules/
+
+# Media files
+Media/
+
+# Environment variables
+.env
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+.DS_Store
+
+# Compiled files
+dist/
+build/
+
+# Ignore specific test or temp files (optional)
+TEST.js
+
+# Optional: Ignore database files if auto-generated
+*.sql

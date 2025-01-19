@@ -36,4 +36,5 @@ AdsRouter.post("/upload",
     upload.single('ad_file'),
     Ads.upload)
 AdsRouter.post("/location",Ads.addAdsLocation)
+AdsRouter.post("/display",Ads.addAdDisplay)
 export default AdsRouter;

@@ -51,7 +51,7 @@ class Ads {
                     message: "Data Missing"
                 })
             }
-         
+
             const ad = req.file
 
             const folder_path = `${user_id}_${name}/Advertistment`;
@@ -61,7 +61,7 @@ class Ads {
             if (!fs.existsSync(base_dir)) {
                 fs.mkdirSync(base_dir, { recursive: true });
             }
-      
+
             const old_path = ad.path;
             const file_extension = path.extname(ad.originalname) || ".jpg";
             const new_file_name = `${ad.fieldname}_${Date.now()}${file_extension}`;
@@ -96,9 +96,9 @@ class Ads {
     static addAdsLocation = async (req, res) => {
         try {
             const { address_id, ad_id } = req.body;
-            console.log(address_id,ad_id)
+            console.log(address_id, ad_id)
             if (!address_id || !ad_id || !Array.isArray(address_id)) {
-                
+
                 return res.status(400).json({
                     status: false,
                     message: "Data Missing",
@@ -110,7 +110,7 @@ class Ads {
 
             // Bulk insert query
             const [result] = await pool.query(
-                `INSERT INTO AdvertistmentLocation (address_id, ads_id) VALUES ?`,
+                `INSERT IGNORE INTO AdvertistmentLocation (address_id, ads_id) VALUES ?`,
                 [values]
             );
 
@@ -123,7 +123,7 @@ class Ads {
             return res.status(201).json({
                 status: true,
                 message: "Locations Added Successfully",
-                ad_location_ids:ad_location_ids,
+                ad_location_ids: ad_location_ids,
             });
         } catch (error) {
             console.error(error);
@@ -137,8 +137,8 @@ class Ads {
 
     static addAdDisplay = async (req, res) => {
         try {
-            const { displays, ad_id, inner, outer, standee } = req.body;
-
+            const { displays, ad_id } = req.body;
+            console.log(displays, ad_id);
             if (!displays || !ad_id || !Array.isArray(displays)) {
                 return res.status(400).json({
                     status: false,
@@ -146,57 +146,29 @@ class Ads {
                 });
             }
 
-            // Prepare the values for bulk insert
-            const values = displays.map((display) => [
-                display.ad_location_id,
-                display.display_id,
+
+            const values = displays.map((display_id) => [
+                display_id,
                 ad_id,
             ]);
 
             // Bulk insert query
             const [result] = await pool.query(
-                `INSERT INTO AdvertistmentDisplay (ad_location_id, display_id, ads_id) VALUES ?`,
+                `INSERT IGNORE INTO AdvertistmentDisplay (display_id, ads_id) VALUES ?`,
                 [values]
             );
 
-            /// Calculate charges
-            const inner_charge = inner.no_of_display * inner.charge;
-            const outer_charge = outer.no_of_display * outer.charge;
-            const standee_charge = standee.no_of_display * standee.charge;
-            const total_charge = inner_charge + outer_charge + standee_charge;
+            const calculation = await this.getDisplayCostCalculation(ad_id)
 
-
-            const [invoice] = await pool.query(
-                `INSERT INTO Invoice (total_charge, ads_id) VALUES (?, ?)`,
-                [total_charge, ad_id]
-            );
-
-            // Prepare values for InvoiceDetail
-            const invoiceDetails = [
-                ['inner', inner.charge, inner.no_of_display, inner_charge, invoice.insertId],
-                ['outer', outer.charge, outer.no_of_display, outer_charge, invoice.insertId],
-                ['standee', standee.charge, standee.no_of_display, standee_charge, invoice.insertId],
-            ];
-
-            // Bulk insert into InvoiceDetail table
-            const [invoiceDetail] = await pool.query(
-                `INSERT INTO InvoiceDetail (display_type, display_charge, no_of_display, total_charge, invoice_id) VALUES ?`,
-                [invoiceDetails]
-            );
-
-            console.log('Invoice and invoice details inserted successfully');
-
-            const [bill] = await pool.query( `
-                INSERT INTO AdvertistmentBill (ad_amt,ad_bill_status,,ads_id) , VALUES(?,?,?)
-                `,[total_charge,"Unpaid",ad_id]);
-
-
-
-            // Response with inserted data
+            console.log(calculation)
+            const bill = await this.createInvoice(ad_id,calculation.total_cost,calculation.display_charge);
+            console.log(bill)
             return res.status(201).json({
                 status: true,
                 message: "Displays added successfully",
                 insertedCount: result.affectedRows,
+                calculation:calculation,
+                bill:bill
             });
         } catch (error) {
             console.error(error);
@@ -206,6 +178,115 @@ class Ads {
             });
         }
     };
+
+    static getDisplayCostCalculation = async(ad_id) =>{
+        try {
+            const [no_of_days] = await pool.query(`
+                select SUM(DATEDIFF(A.end_date, A.start_date) + 1) AS total_days 
+                from Advertistment as A where ads_id = ?
+                `, [ad_id])
+
+            const  [display_charge] = await pool.query(`
+                SELECT 
+                DT.display_type_id,
+                DT.display_charge,
+                DT.display_type,
+                COUNT(AD.ad_display_id) AS display_count
+                FROM 
+                    AdvertistmentDisplay AD
+                JOIN 
+                    Display D ON AD.display_id = D.display_id
+                JOIN 
+                    DisplayType DT ON D.display_type_id = DT.display_type_id
+                WHERE 
+                    AD.ads_id = ?
+                GROUP BY 
+                DT.display_type_id, DT.display_type, DT.display_charge;
+                `,[ad_id])
+
+            
+            let final_cost = 0
+            const days = no_of_days[0].total_days;
+            for(const display of display_charge){
+                display['no_of_days'] = days
+                display['cost'] = days*display['display_charge']*display['display_count']
+                final_cost = final_cost+ display['cost']
+            }
+
+            return {
+                status:true,
+                 total_cost:final_cost,
+                 display_charge:display_charge
+            }
+        } catch (error) {
+            console.log(error)
+            return{
+                status:false
+            }
+        }
+    }
+
+    static createInvoice = async (ad_id, total_cost, display_charge) => {
+        try {
+            // Insert into Invoice table
+            const [invoice] = await pool.query(
+                `INSERT IGNORE INTO Invoice (total_charge, ads_id) VALUES (?, ?)`,
+                [total_cost, ad_id]
+            );
+    
+            // If no new invoice is created, return early
+            if (invoice.affectedRows === 0) {
+                return {
+                    status: false,
+                    message: "Invoice already exists for this ad."
+                };
+            }
+    
+            const invoice_id = invoice.insertId;
+    
+            // Prepare data for InvoiceDetail
+            const invoice_details = display_charge.map((display) => [
+                display['display_type_id'],
+                display['display_charge'],
+                display['display_count'],
+                display['no_of_days'],
+                display['cost'],
+                invoice_id
+            ]);
+    
+            // Insert multiple rows into InvoiceDetail
+            await pool.query(
+                `INSERT INTO InvoiceDetail 
+                    (display_type, display_charge, no_of_display, no_of_days, total_charge, invoice_id) 
+                 VALUES ?`,
+                [invoice_details]
+            );
+    
+            // Insert into AdvertistmentBill
+            const [bill] = await pool.query(
+                `INSERT INTO AdvertistmentBill 
+                    (ad_amt, total_amt, paid_amt, ad_bill_status, ads_id, invoice_id) 
+                 VALUES (?, ?, ?, ?, ?, ?)`,
+                [total_cost, total_cost, 0, "Unpaid", ad_id, invoice_id]
+            );
+    
+            // Return success response
+            return {
+                status: true,
+                invoice_id: invoice_id,
+                ad_bill_id: bill.insertId
+            };
+    
+        } catch (error) {
+            console.error(error);
+            return {
+                status: false,
+                message: "An error occurred while creating the invoice."
+            };
+        }
+    };
+    
+    
 
 }
 

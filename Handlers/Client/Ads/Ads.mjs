@@ -68,7 +68,7 @@ class Ads {
             const new_path = path.join(base_dir, new_file_name);
 
             fs.renameSync(old_path, new_path);
-            const ad_path = path.relative(path.resolve(__dirname, "../../"), new_path);
+            const ad_path = path.relative(path.resolve(__dirname, "../../../"), new_path);
 
 
             const [advertistment] = await pool.query(
@@ -332,12 +332,12 @@ class Ads {
 
 
     static getAdDetails = async (req, res) => {
-    try {
-        const { ad_id } = req.params;
+        try {
+            const { ad_id } = req.params;
 
-        // Fetching advertisement location data
-        const [ad_location] = await pool.query(
-            `
+            // Fetching advertisement location data
+            const [ad_location] = await pool.query(
+                `
             SELECT 
                 al.address_id,
                 a.pin_code,
@@ -350,73 +350,146 @@ class Ads {
             ON al.address_id = a.address_id
             WHERE al.ads_id = ?;
             `, [ad_id]
-        );
+            );
 
-        // If no location found, return an error response
-        if (!ad_location) {
-            return res.status(404).json({
+            // If no location found, return an error response
+            if (!ad_location) {
+                return res.status(404).json({
+                    status: false,
+                    message: "No advertisement location found"
+                });
+            }
+
+            const result = ad_location.reduce((acc, row) => {
+                const { state, district, cluster, area, address_id, pin_code } = row;
+
+                // Initialize state if not already present
+                if (!acc[state]) {
+                    acc[state] = {};
+                }
+
+                // Initialize district under the state
+                if (!acc[state][district]) {
+                    acc[state][district] = {};
+                }
+
+                // Initialize cluster under the district
+                if (!acc[state][district][cluster]) {
+                    acc[state][district][cluster] = {};
+                }
+
+                // Initialize pin_code under the cluster
+                if (!acc[state][district][cluster][pin_code]) {
+                    acc[state][district][cluster][pin_code] = {};
+                }
+
+                // Initialize area under the pin_code
+                if (!acc[state][district][cluster][pin_code][area]) {
+                    acc[state][district][cluster][pin_code][area] = [];
+                }
+
+                // Add the address_id to the area
+                if (!acc[state][district][cluster][pin_code][area].includes(address_id)) {
+                    acc[state][district][cluster][pin_code][area].push(address_id);
+                }
+
+                return acc;
+            }, {});
+
+            // Reformatting ad_location into the required nested
+            console.log(result)
+            // Fetching invoice details
+            const invoice = await this.getDisplayCostCalculation(ad_id);
+
+            // Response
+            return res.status(200).json({
+                status: true,
+                message: "Advertisement Details Fetch Successfully",
+                ad_location: result,
+                invoice: invoice
+            });
+
+        } catch (error) {
+            console.log(error);
+            return res.status(500).json({
                 status: false,
-                message: "No advertisement location found"
+                message: "Something Went Wrong"
             });
         }
+    };
 
-        const result = ad_location.reduce((acc, row) => {
-            const { state, district, cluster, area, address_id, pin_code } = row;
+    static fetchAdsDisplay = async(req,res)=>{
+        try {
+            const {address_ids,ad_id} = req.body;
+            const [displays] = await pool.query(
+                `select
+                    ad.display_id,
+                    d.display_img,
+                    d.display_video,
+                    dt.display_type,
+                    c.client_business_name 
+                    from AdvertistmentDisplay as ad
+                    inner join Display as d
+                    on ad.display_id = d.display_id
+                    join DisplayType as dt
+                    on d.display_type_id = dt.display_type_id
+                    join ClientBusiness as c
+                    on d.client_business_id = c.client_business_id
+                    join Address as a
+                    on a.client_business_id = c.client_business_id
+                    where a.address_id in (?) and ad.ads_id =  ?
+                `,[address_ids,ad_id]
+            )
 
-            // Initialize state if not already present
-            if (!acc[state]) {
-                acc[state] = {};
-            }
+            const result = displays.reduce((acc, row) => {
+                const {
+                  client_business_name,
+                  display_id,
+                  display_img,
+                  display_video,
+                  display_type,
+                } = row;
+          
+        
+          
+                // Ensure client business exists under the area
+                if (!acc[client_business_name]) {
+                  acc[client_business_name] = {};
+                }
+          
+                // Ensure display type exists under the client business
+                if (!acc[client_business_name][display_type]) {
+                  acc[client_business_name][display_type] = [];
+                }
+          
+                // Add the display details under the respective display type
+                acc[client_business_name][display_type].push({
+                  display_id,
+                  display_img,
+                  display_video,
+                });
+          
+                return acc;
+              }, {});
+          
+              console.log(result);
 
-            // Initialize district under the state
-            if (!acc[state][district]) {
-                acc[state][district] = {};
-            }
+          
 
-            // Initialize cluster under the district
-            if (!acc[state][district][cluster]) {
-                acc[state][district][cluster] = {};
-            }
+            return res.status(200).json({
+                status:true,
+                displays:result,
+                message:"Display Fetch Successfully"
+            })
 
-            // Initialize pin_code under the cluster
-            if (!acc[state][district][cluster][pin_code]) {
-                acc[state][district][cluster][pin_code] = {};
-            }
-
-            // Initialize area under the pin_code
-            if (!acc[state][district][cluster][pin_code][area]) {
-                acc[state][district][cluster][pin_code][area] = [];
-            }
-
-            // Add the address_id to the area
-            if (!acc[state][district][cluster][pin_code][area].includes(address_id)) {
-                acc[state][district][cluster][pin_code][area].push(address_id);
-            }
-
-            return acc;
-        }, {});
-
-        // Reformatting ad_location into the required nested
-        console.log(result)
-        // Fetching invoice details
-        const invoice = await this.getDisplayCostCalculation(ad_id);
-
-        // Response
-        return res.status(200).json({
-            status: true,
-            message: "Advertisement Details Fetch Successfully",
-            ad_location: result,
-            invoice: invoice
-        });
-
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            status: false,
-            message: "Something Went Wrong"
-        });
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({
+                status:false,
+                message:"Something went wrong"
+            })
+        }
     }
-};
 
 }
 

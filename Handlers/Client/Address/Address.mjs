@@ -161,24 +161,30 @@ class Address {
 
     static getAddressForAds = async (req, res) => {
         try {
-            const {business_type_id} = req.params;
+            const { business_type_id } = req.params;
             const query = `
-            SELECT 
-              state, 
-              district, 
-              cluster, 
-              area, 
-              address_id, 
-              pin_code
-            FROM Address as a
-            INNER JOIN ClientBusiness as c
-            on a.client_business_id = c.client_business_id
-            WHERE c.business_type_id != ? and c.client_business_status ="Approved"
-            ORDER BY state, district, cluster, pin_code, area;
+                SELECT 
+                state, 
+                district, 
+                cluster, 
+                area, 
+                address_id, 
+                pin_code
+                FROM Address as a
+                INNER JOIN ClientBusiness as c
+                on a.client_business_id = c.client_business_id
+                Left join Display d
+                on c.client_business_id = d.client_business_id
+                WHERE c.business_type_id !=7 and 
+                c.client_business_status ="Approved" and 
+                d.display_status = "Approved" or d.display_status = "Active"
+                GROUP BY state, district, cluster, pin_code, area, address_id 
+                ORDER BY state, district, cluster, pin_code, area;
           `;
 
             // Execute the query
-            const [rows] = await pool.query(query,[business_type_id]);
+            const [rows] = await pool.query(query, [business_type_id]);
+            console.log(rows)
 
             // Transform the data into the desired nested format
             const result = rows.reduce((acc, row) => {
@@ -216,7 +222,7 @@ class Address {
 
                 return acc;
             }, {});
-
+            console.log(result)
             // Return the result
             return res.status(200).json({
                 status: true,

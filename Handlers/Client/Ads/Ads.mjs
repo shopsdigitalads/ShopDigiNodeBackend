@@ -161,14 +161,14 @@ class Ads {
             const calculation = await this.getDisplayCostCalculation(ad_id)
 
             console.log(calculation)
-            const bill = await this.createInvoice(ad_id,calculation.total_cost,calculation.display_charge);
+            const bill = await this.createInvoice(ad_id, calculation.total_cost, calculation.display_charge);
             console.log(bill)
             return res.status(201).json({
                 status: true,
                 message: "Displays added successfully",
                 insertedCount: result.affectedRows,
-                calculation:calculation,
-                bill:bill
+                calculation: calculation,
+                bill: bill
             });
         } catch (error) {
             console.error(error);
@@ -179,14 +179,14 @@ class Ads {
         }
     };
 
-    static getDisplayCostCalculation = async(ad_id) =>{
+    static getDisplayCostCalculation = async (ad_id) => {
         try {
             const [no_of_days] = await pool.query(`
                 select SUM(DATEDIFF(A.end_date, A.start_date) + 1) AS total_days 
                 from Advertistment as A where ads_id = ?
                 `, [ad_id])
 
-            const  [display_charge] = await pool.query(`
+            const [display_charge] = await pool.query(`
                 SELECT 
                 DT.display_type_id,
                 DT.display_charge,
@@ -202,26 +202,26 @@ class Ads {
                     AD.ads_id = ?
                 GROUP BY 
                 DT.display_type_id, DT.display_type, DT.display_charge;
-                `,[ad_id])
+                `, [ad_id])
 
-            
+
             let final_cost = 0
             const days = no_of_days[0].total_days;
-            for(const display of display_charge){
+            for (const display of display_charge) {
                 display['no_of_days'] = days
-                display['cost'] = days*display['display_charge']*display['display_count']
-                final_cost = final_cost+ display['cost']
+                display['cost'] = days * display['display_charge'] * display['display_count']
+                final_cost = final_cost + display['cost']
             }
 
             return {
-                status:true,
-                 total_cost:final_cost,
-                 display_charge:display_charge
+                status: true,
+                total_cost: final_cost,
+                display_charge: display_charge
             }
         } catch (error) {
             console.log(error)
-            return{
-                status:false
+            return {
+                status: false
             }
         }
     }
@@ -233,7 +233,7 @@ class Ads {
                 `INSERT IGNORE INTO Invoice (total_charge, ads_id) VALUES (?, ?)`,
                 [total_cost, ad_id]
             );
-    
+
             // If no new invoice is created, return early
             if (invoice.affectedRows === 0) {
                 return {
@@ -241,9 +241,9 @@ class Ads {
                     message: "Invoice already exists for this ad."
                 };
             }
-    
+
             const invoice_id = invoice.insertId;
-    
+
             // Prepare data for InvoiceDetail
             const invoice_details = display_charge.map((display) => [
                 display['display_type_id'],
@@ -253,7 +253,7 @@ class Ads {
                 display['cost'],
                 invoice_id
             ]);
-    
+
             // Insert multiple rows into InvoiceDetail
             await pool.query(
                 `INSERT INTO InvoiceDetail 
@@ -261,7 +261,7 @@ class Ads {
                  VALUES ?`,
                 [invoice_details]
             );
-    
+
             // Insert into AdvertistmentBill
             const [bill] = await pool.query(
                 `INSERT INTO AdvertistmentBill 
@@ -269,14 +269,14 @@ class Ads {
                  VALUES (?, ?, ?, ?, ?, ?)`,
                 [total_cost, total_cost, 0, "Unpaid", ad_id, invoice_id]
             );
-    
+
             // Return success response
             return {
                 status: true,
                 invoice_id: invoice_id,
                 ad_bill_id: bill.insertId
             };
-    
+
         } catch (error) {
             console.error(error);
             return {
@@ -289,7 +289,7 @@ class Ads {
     static getAdsOfUser = async (req, res) => {
         try {
             const { user_id } = req.params;
-    
+
             // Query to fetch advertisements of the user
             const [upload_ads] = await pool.query(
                 `
@@ -312,24 +312,111 @@ class Ads {
                 `,
                 [user_id]
             );
-    
-        
+
+
             res.status(200).json(
-                { 
-                    status:true,
-                    upload_ads:upload_ads,
-                    make_ads:make_ads
-                     }
-                );
+                {
+                    status: true,
+                    upload_ads: upload_ads,
+                    make_ads: make_ads
+                }
+            );
         } catch (error) {
             console.error(error);
-            res.status(500).json({ 
-                status:false,
-                message: "An error occurred while fetching advertisements." });
+            res.status(500).json({
+                status: false,
+                message: "An error occurred while fetching advertisements."
+            });
         }
     };
-    
-    
+
+
+    static getAdDetails = async (req, res) => {
+    try {
+        const { ad_id } = req.params;
+
+        // Fetching advertisement location data
+        const [ad_location] = await pool.query(
+            `
+            SELECT 
+                al.address_id,
+                a.pin_code,
+                a.area,
+                a.cluster,
+                a.district,
+                a.state
+            FROM AdvertistmentLocation AS al
+            INNER JOIN Address AS a
+            ON al.address_id = a.address_id
+            WHERE al.ads_id = ?;
+            `, [ad_id]
+        );
+
+        // If no location found, return an error response
+        if (!ad_location) {
+            return res.status(404).json({
+                status: false,
+                message: "No advertisement location found"
+            });
+        }
+
+        const result = ad_location.reduce((acc, row) => {
+            const { state, district, cluster, area, address_id, pin_code } = row;
+
+            // Initialize state if not already present
+            if (!acc[state]) {
+                acc[state] = {};
+            }
+
+            // Initialize district under the state
+            if (!acc[state][district]) {
+                acc[state][district] = {};
+            }
+
+            // Initialize cluster under the district
+            if (!acc[state][district][cluster]) {
+                acc[state][district][cluster] = {};
+            }
+
+            // Initialize pin_code under the cluster
+            if (!acc[state][district][cluster][pin_code]) {
+                acc[state][district][cluster][pin_code] = {};
+            }
+
+            // Initialize area under the pin_code
+            if (!acc[state][district][cluster][pin_code][area]) {
+                acc[state][district][cluster][pin_code][area] = [];
+            }
+
+            // Add the address_id to the area
+            if (!acc[state][district][cluster][pin_code][area].includes(address_id)) {
+                acc[state][district][cluster][pin_code][area].push(address_id);
+            }
+
+            return acc;
+        }, {});
+
+        // Reformatting ad_location into the required nested
+        console.log(result)
+        // Fetching invoice details
+        const invoice = await this.getDisplayCostCalculation(ad_id);
+
+        // Response
+        return res.status(200).json({
+            status: true,
+            message: "Advertisement Details Fetch Successfully",
+            ad_location: result,
+            invoice: invoice
+        });
+
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            status: false,
+            message: "Something Went Wrong"
+        });
+    }
+};
 
 }
 

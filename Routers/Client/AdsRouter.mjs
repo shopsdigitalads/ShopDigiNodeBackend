@@ -37,4 +37,5 @@ AdsRouter.post("/upload",
     Ads.upload)
 AdsRouter.post("/location",Ads.addAdsLocation)
 AdsRouter.post("/display",Ads.addAdDisplay)
+AdsRouter.get("/:user_id",Ads.getAdsOfUser)
 export default AdsRouter;

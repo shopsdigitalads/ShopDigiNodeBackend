@@ -285,6 +285,49 @@ class Ads {
             };
         }
     };
+
+    static getAdsOfUser = async (req, res) => {
+        try {
+            const { user_id } = req.params;
+    
+            // Query to fetch advertisements of the user
+            const [upload_ads] = await pool.query(
+                `
+                SELECT *
+                FROM Advertistment ads
+                LEFT JOIN BusinessType bt ON ads.business_type_id = bt.business_type_id
+                WHERE ads.user_id = ?
+                ORDER BY ads.ads_id DESC
+                `,
+                [user_id]
+            );
+
+            const [make_ads] = await pool.query(
+                `
+                SELECT *
+                FROM MakeAdvertistment ads
+                LEFT JOIN BusinessType bt ON ads.business_type_id = bt.business_type_id
+                WHERE ads.user_id = ?
+                ORDER BY ads.make_ad_id DESC
+                `,
+                [user_id]
+            );
+    
+        
+            res.status(200).json(
+                { 
+                    status:true,
+                    upload_ads:upload_ads,
+                    make_ads:make_ads
+                     }
+                );
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ 
+                status:false,
+                message: "An error occurred while fetching advertisements." });
+        }
+    };
     
     
 

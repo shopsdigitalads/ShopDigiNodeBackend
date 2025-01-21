@@ -31,13 +31,16 @@ const upload = multer({
 
 const AdsRouter = express.Router();
 
-AdsRouter.post("/create",Ads.createAdd)
+AdsRouter.post("/create", Ads.createAdd)
 AdsRouter.post("/upload",
-    upload.single('ad_file'),
-    Ads.upload)
-AdsRouter.post("/location",Ads.addAdsLocation)
-AdsRouter.post("/display",Ads.addAdDisplay)
-AdsRouter.get("/:user_id",Ads.getAdsOfUser)
-AdsRouter.get("/details/:ad_id",Ads.getAdDetails);
-AdsRouter.post("/ad_display",Ads.fetchAdsDisplay)
+  upload.single('ad_file'),
+  Ads.upload)
+AdsRouter.put("/upload",
+  upload.single('ad_file'),
+  Ads.updateAd)
+AdsRouter.post("/location", Ads.addAdsLocation)
+AdsRouter.post("/display", Ads.addAdDisplay)
+AdsRouter.get("/:user_id", Ads.getAdsOfUser)
+AdsRouter.get("/details/:ad_id", Ads.getAdDetails);
+AdsRouter.post("/ad_display", Ads.fetchAdsDisplay)
 export default AdsRouter;

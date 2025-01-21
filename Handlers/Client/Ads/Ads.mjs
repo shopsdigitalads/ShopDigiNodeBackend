@@ -134,6 +134,48 @@ class Ads {
         }
     };
 
+    static updateAd = async (req, res) => {
+        try {
+            console.log("here")
+            const { ad_type, ad_id,user_id,name } = req.body;
+            console.log("here")
+            const ad = req.file
+           
+            const folder_path = `${user_id}_${name}/Advertistment`;
+            const base_dir = path.resolve(__dirname, `../../../Media/Client/${folder_path}`);
+
+            // Create directory if it doesn't exist
+            if (!fs.existsSync(base_dir)) {
+                fs.mkdirSync(base_dir, { recursive: true });
+            }
+
+            const old_path = ad.path;
+            const file_extension = path.extname(ad.originalname) || ".jpg";
+            const new_file_name = `${ad.fieldname}_${Date.now()}${file_extension}`;
+            const new_path = path.join(base_dir, new_file_name);
+
+            fs.renameSync(old_path, new_path);
+            const ad_path = path.relative(path.resolve(__dirname, "../../../"), new_path);
+           
+            const updated_ad = await pool.query(
+                `UPDATE Advertistment SET ad_type = ?, ad_path = ? where ads_id = ?  
+                `,[ad_type,ad_path,ad_id]
+            )
+            console.log(updated_ad)
+            console.log("here")
+            return res.status(200).json({
+                status:true,
+                message:"Advertistment Updated Successfully"
+            })
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({
+                status:false,
+                message:"Something went Wrong"
+            })
+        }
+    }
+
 
     static addAdDisplay = async (req, res) => {
         try {
@@ -312,7 +354,7 @@ class Ads {
                 `,
                 [user_id]
             );
-
+            console.log(upload_ads)
 
             res.status(200).json(
                 {
@@ -418,9 +460,9 @@ class Ads {
         }
     };
 
-    static fetchAdsDisplay = async(req,res)=>{
+    static fetchAdsDisplay = async (req, res) => {
         try {
-            const {address_ids,ad_id} = req.body;
+            const { address_ids, ad_id } = req.body;
             const [displays] = await pool.query(
                 `select
                     ad.display_id,
@@ -438,55 +480,55 @@ class Ads {
                     join Address as a
                     on a.client_business_id = c.client_business_id
                     where a.address_id in (?) and ad.ads_id =  ?
-                `,[address_ids,ad_id]
+                `, [address_ids, ad_id]
             )
 
             const result = displays.reduce((acc, row) => {
                 const {
-                  client_business_name,
-                  display_id,
-                  display_img,
-                  display_video,
-                  display_type,
+                    client_business_name,
+                    display_id,
+                    display_img,
+                    display_video,
+                    display_type,
                 } = row;
-          
-        
-          
+
+
+
                 // Ensure client business exists under the area
                 if (!acc[client_business_name]) {
-                  acc[client_business_name] = {};
+                    acc[client_business_name] = {};
                 }
-          
+
                 // Ensure display type exists under the client business
                 if (!acc[client_business_name][display_type]) {
-                  acc[client_business_name][display_type] = [];
+                    acc[client_business_name][display_type] = [];
                 }
-          
+
                 // Add the display details under the respective display type
                 acc[client_business_name][display_type].push({
-                  display_id,
-                  display_img,
-                  display_video,
+                    display_id,
+                    display_img,
+                    display_video,
                 });
-          
-                return acc;
-              }, {});
-          
-              console.log(result);
 
-          
+                return acc;
+            }, {});
+
+            console.log(result);
+
+
 
             return res.status(200).json({
-                status:true,
-                displays:result,
-                message:"Display Fetch Successfully"
+                status: true,
+                displays: result,
+                message: "Display Fetch Successfully"
             })
 
         } catch (error) {
             console.log(error)
             return res.status(500).json({
-                status:false,
-                message:"Something went wrong"
+                status: false,
+                message: "Something went wrong"
             })
         }
     }

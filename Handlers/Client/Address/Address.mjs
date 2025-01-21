@@ -139,7 +139,7 @@ class Address {
             }
 
             let fields = update_field.join(" = ?,") + " = ?";
-            const query = `UPDATE Address SET ${fields} WHERE user_id = ?`;
+            const query = `UPDATE Address SET ${fields} WHERE address_id = ?`;
             const [updated_address] = await pool.query(query, update_data);
 
             console.log(updated_address.affectedRows);

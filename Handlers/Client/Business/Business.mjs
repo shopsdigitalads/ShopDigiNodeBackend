@@ -3,6 +3,7 @@ import Address from '../Address/Address.mjs';
 import path from 'path'
 import { fileURLToPath } from 'url'
 import fs from 'fs'
+import cluster from 'cluster';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -101,8 +102,9 @@ class Business {
 
     static updateBusiness = async (req, res) => {
         try {
-            const { update_field, update_data, client_business_id, name, user_id } = req.body;
-
+            const { field, data, client_business_id, name, user_id } = req.body;
+            const update_field = JSON.parse(field)
+            const update_data = JSON.parse(data)
             console.log("here")
             if (!update_data || !update_field || !client_business_id || !name || !user_id) {
                 return res.status(400).json({
@@ -199,6 +201,12 @@ class Business {
                     c.client_business_name,
                     c.client_business_status,
                     c.client_business_remark,
+                    a.address_id,
+                    a.pin_code,
+                    a.area,
+                    a.cluster,
+                    a.district,
+                    a.state,
                     b.business_type_name,
                     d.display_id,
                     d.display_status,
@@ -214,6 +222,8 @@ class Business {
                     on d.display_type_id = dt.display_type_id
                     left join DisplayEarning as de
                     on d.display_id = de.display_id
+                    join Address as a
+                    on a.client_business_id = c.client_business_id
                     where c.user_id = ?;`,
                 [userId]
             );
@@ -240,6 +250,12 @@ class Business {
                         client_business_remark: business.client_business_remark,
                         business_type_name: business.business_type_name,
                         client_business_status: business.client_business_status,
+                        address_id:business.address_id,
+                        pin_code:business.pin_code,
+                        area:business.area,
+                        cluster:business.cluster,
+                        district:business.district,
+                        state:business.state,
                         displays: [],
                     };
                     // Only add the display if display_id is not null or undefined
@@ -254,7 +270,7 @@ class Business {
                     }
                 }
             }
-
+            console.log(result)
             res.status(200).json(
                 {
                     status: true,

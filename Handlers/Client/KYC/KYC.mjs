@@ -11,8 +11,8 @@ class KYC {
     static applyForKYC = async (req, res) => {
         try {
             console.log(req.files)
-            const { adhar_no, pan_no, acc_holder_name, acc_no, bank_ifsc, bank_name, bank_branch_name, name,user_id } = req.body;
-            
+            const { adhar_no, pan_no, acc_holder_name, acc_no, bank_ifsc, bank_name, bank_branch_name, name, user_id } = req.body;
+
             if (!adhar_no || !pan_no || !acc_holder_name || !acc_no || !bank_ifsc || !bank_name || !bank_branch_name) {
                 console.log("here");
                 return res.status(400).json({
@@ -34,7 +34,7 @@ class KYC {
             ]
 
             const file_path = {};
-     
+
             for (const file of req_files) {
                 if (files[file] && files[file][0]) {
                     const old_path = files[file][0].path;
@@ -50,7 +50,7 @@ class KYC {
                     })
                 }
             }
-           
+
 
             const query = `
                 INSERT INTO KYC(
@@ -83,17 +83,19 @@ class KYC {
 
     static updateKYC = async (req, res) => {
         try {
-            console.log("here")
-            const { update_field, update_data, name,user_id } = req.body;
-            
-            
+            const { field, data, name, user_id } = req.body;
+
+            const update_field = JSON.parse(field)
+            const update_data = JSON.parse(data);
+
             if (!update_data || !update_field) {
+
                 return res.status(400).json({
                     status: false,
                     message: "Data Missing"
                 })
             }
-            console.log(Array.isArray(update_field))
+
             if (!Array.isArray(update_field) || !Array.isArray(update_data) || update_field.length !== update_data.length) {
                 return res.status(400).json({
                     status: false,
@@ -143,15 +145,19 @@ class KYC {
             }
 
             const final_fields = update_field.concat(i_files);
-            const update_query = final_fields.join(" = ?,") + " = ?"
+            const update_query = final_fields.map(field => `${field} = ?`).join(", ");
             const query = `UPDATE KYC SET ${update_query} WHERE user_id = ?`;
-            const final_data = update_data.concat(file_path)
+
+         
+            const final_data = update_data.concat(file_path);
             final_data.push(user_id);
 
             const [updated_kyc] = await pool.query(query, final_data);
 
+
             console.log(updated_kyc.affectedRows);
             if (updated_kyc.affectedRows !== 1) {
+                console.log("here");
                 return res.status(404).json(
                     {
                         status: false,
@@ -159,6 +165,7 @@ class KYC {
                     }
                 )
             }
+            
             return res.status(200).json({
                 status: true,
                 message: 'Successfully updated'
@@ -174,7 +181,29 @@ class KYC {
         }
     }
 
-    
+    static getKycOfUser = async (req, res) => {
+        try {
+            const { user_id } = req.params;
+            const [kyc] = await pool.query(
+                `
+                SELECT * From KYC WHERE user_id = ?`
+                , [user_id]
+            )
+
+            return res.status(200).json({
+                status: true,
+                message: "KYC Fetch Successfully",
+                kyc: kyc
+            })
+        } catch (error) {
+            return res.status(500).json({
+                status: false,
+                message: "Something Went Wrong"
+            })
+        }
+    }
+
+
 }
 
 export default KYC;

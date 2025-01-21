@@ -47,4 +47,6 @@ KYCRouter.put('/',
     ]),KYC.updateKYC
 )
 
+KYCRouter.get("/:user_id",KYC.getKycOfUser)
+
 export default KYCRouter

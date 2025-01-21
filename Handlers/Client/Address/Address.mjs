@@ -239,6 +239,29 @@ class Address {
     };
 
 
+    static getAddressOfUser = async (req, res) => {
+        try {
+            const { user_id } = req.params;
+            const [kyc] = await pool.query(
+                `
+                SELECT * From KYC WHERE user_id = ?`
+                ,[user_id]
+            )
+
+            return res.status(200).json({
+                status:true,
+                message:"KYC Fetch Successfully",
+                kyc:kyc
+            })
+        } catch (error) {
+            return res.status(500).json({
+                status:false,
+                message:"Something Went Wrong"
+            })
+        }
+    }
+
+
 
 
 }

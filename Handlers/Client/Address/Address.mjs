@@ -108,14 +108,21 @@ class Address {
 
     static updateAddress = async (req, res) => {
         try {
-            const { update_field, update_data } = req.body;
+            const { field, data } = req.body;
+          
+            const update_field = JSON.parse(field);
+            const update_data = JSON.parse(data);
+
             if (!update_data || !update_field) {
                 return res.status(400).json({
                     status: false,
                     message: "Data Missing"
                 })
             }
+            console.log(update_data.length)
+            console.log(update_field.length)
 
+            console.log(!Array.isArray(update_field) || !Array.isArray(update_data) || update_field.length !== update_data.length - 1)
             if (!Array.isArray(update_field) || !Array.isArray(update_data) || update_field.length !== update_data.length - 1) {
                 return res.status(400).json({
                     status: false,
@@ -132,7 +139,7 @@ class Address {
             }
 
             let fields = update_field.join(" = ?,") + " = ?";
-            const query = `UPDATE Address SET ${fields} WHERE address_id = ?`;
+            const query = `UPDATE Address SET ${fields} WHERE user_id = ?`;
             const [updated_address] = await pool.query(query, update_data);
 
             console.log(updated_address.affectedRows);
@@ -242,16 +249,16 @@ class Address {
     static getAddressOfUser = async (req, res) => {
         try {
             const { user_id } = req.params;
-            const [kyc] = await pool.query(
+            const [address] = await pool.query(
                 `
-                SELECT * From KYC WHERE user_id = ?`
+                SELECT * From Address WHERE user_id = ?`
                 ,[user_id]
             )
 
             return res.status(200).json({
                 status:true,
-                message:"KYC Fetch Successfully",
-                kyc:kyc
+                message:"Address Fetch Successfully",
+                address:address
             })
         } catch (error) {
             return res.status(500).json({

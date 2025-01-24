@@ -43,7 +43,6 @@ DisplayRouter.put("/",
     { name: 'display_img', maxCount: 1 },
     { name: 'display_video', maxCount: 1 },
   ])
-
   , Display.updateDisplay);
 
 DisplayRouter.get("/types",Display.getDisplayTypes)

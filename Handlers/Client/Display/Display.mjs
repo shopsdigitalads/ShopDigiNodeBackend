@@ -19,11 +19,10 @@ class Display {
         client_business_name,
         user_id,
         name,
-        display_no,
         display_type
       } = req.body;
       console.log(display_type_id)
-      if (!display_type_id || !client_business_id || !client_business_name || !user_id || !name || !display_type || !display_no) {
+      if (!display_type_id || !client_business_id || !client_business_name || !user_id || !name || !display_type) {
         console.log("here")
         return res.status(400).json({
           status: false,
@@ -50,7 +49,7 @@ class Display {
         if (files[file] && files[file][0]) {
           const old_path = files[file][0].path;
           const file_extension = path.extname(files[file][0].originalname) || ".jpg";
-          const new_file_name = `${file}_${display_type}_${display_no}${file_extension}`;
+          const new_file_name = `${file}_${display_type}_${Date.now()}${file_extension}`;
           const new_path = path.join(base_dir, new_file_name);
 
           fs.renameSync(old_path, new_path);
@@ -97,17 +96,18 @@ class Display {
 
   static updateDisplay = async (req, res) => {
     try {
-      const { update_field, update_data, client_business_id, client_business_name, name, user_id, display_id, display_no,
-        display_type } = req.body;
-
-      console.log("here")
-      if (!update_data || !update_field || !client_business_id || !client_business_name || !name || !user_id || !display_no || !display_type) {
+      const { field, data, client_business_id, client_business_name, name, user_id, display_id,
+        display_type } = req.body;  
+      const update_field = JSON.parse(field)
+      const update_data = JSON.parse(data)
+      console.log(update_data)
+      if (!update_data || !update_field || !client_business_id || !client_business_name || !name || !user_id || !display_type) {
         return res.status(400).json({
           status: false,
           message: "Data Missing"
         })
       }
-
+    
       if (!Array.isArray(update_field) || !Array.isArray(update_data) || update_field.length !== update_data.length) {
         return res.status(400).json({
           status: false,
@@ -115,6 +115,8 @@ class Display {
         });
       }
 
+    
+      
       const allowed_fields = ['display_type_id', 'client_business_id'];
 
       if (!update_field.every(field => allowed_fields.includes(field))) {
@@ -123,10 +125,9 @@ class Display {
           message: "Invalid field"
         });
       }
-
+     
       const allowed_update_imgs = ['display_img', 'display_video'];
       const received_fields = Object.keys(req.files);
-
       const valid_files = {};
 
       received_fields.forEach(field => {
@@ -138,18 +139,19 @@ class Display {
       const i_files = Object.keys(valid_files)
       const file_path = [];
       if (Object.keys(valid_files).length > 0) {
-        const folder_name = `${user_id}_${name}/${client_business_id}_${client_business_name}`;
+        const folder_name = `${user_id}_${name}/${client_business_name}`;
         const base_dir = path.resolve(__dirname, `../../../Media/Client/${folder_name}`);
         const files = req.files;
         for (const field of i_files) {
           if (files[field][0]) {
             const old_path = files[field][0].path;
             const file_extension = path.extname(files[field][0].originalname) || ".jpg";
-            const new_file_name = `${field}_${display_type}_${display_no}${file_extension}`;
+            const new_file_name = `${field}_${display_type}_${Date.now()}${file_extension}`;
             const new_path = path.join(base_dir, new_file_name);
             fs.renameSync(old_path, new_path);
             file_path.push(path.relative(path.resolve(__dirname, "../../../"), new_path));
           } else {
+           
             return res.status(400).json({
               status: false,
               message: `Data Missing`
@@ -157,10 +159,10 @@ class Display {
           }
         }
       }
-
+ 
       const final_fields = update_field.concat(i_files);
       const update_query = final_fields.join(" = ?,") + " = ?"
-      const query = `UPDATE Display SET ${update_query} WHERE display_id = ?`;
+      const query = `UPDATE Display SET display_status = "On Review", ${update_query} WHERE display_id = ?`;
       const final_data = update_data.concat(file_path)
       final_data.push(display_id);
 
@@ -180,6 +182,7 @@ class Display {
         message: 'Successfully updated'
       });
     } catch (error) {
+      console.log(error)
       return res.status(500).json({
         status: true,
         message: "An Error occured"
@@ -190,7 +193,7 @@ class Display {
   static getDisplayWithArea = async (req, res) => {
     try {
       const { address_ids } = req.body;
-  
+
       // Validate the request body
       if (!Array.isArray(address_ids) || address_ids.length === 0) {
         return res.status(400).json({
@@ -198,7 +201,7 @@ class Display {
           message: "Invalid or missing address_ids or business_type_id",
         });
       }
-  
+
       // Query to fetch all relevant displays based on the given conditions
       const query = `
         SELECT 
@@ -219,10 +222,10 @@ class Display {
         WHERE address_id IN (?) 
           AND (d.display_status = "Active" OR d.display_status = "Approved");
       `;
-  
+
       // Execute the query with the provided parameters
       const [rows] = await pool.query(query, [address_ids]);
-  
+
       // Transform the result into the desired format
       const result = rows.reduce((acc, row) => {
         const {
@@ -234,22 +237,22 @@ class Display {
           display_charge,
           display_type,
         } = row;
-  
+
         // Ensure area exists in the result object
         if (!acc[area]) {
           acc[area] = {};
         }
-  
+
         // Ensure client business exists under the area
         if (!acc[area][client_business_name]) {
           acc[area][client_business_name] = {};
         }
-  
+
         // Ensure display type exists under the client business
         if (!acc[area][client_business_name][display_type]) {
           acc[area][client_business_name][display_type] = [];
         }
-  
+
         // Add the display details under the respective display type
         acc[area][client_business_name][display_type].push({
           display_id,
@@ -257,10 +260,10 @@ class Display {
           display_video,
           display_charge,
         });
-  
+
         return acc;
       }, {});
-  
+
       console.log(result);
       return res.status(200).json({
         status: true,
@@ -275,7 +278,7 @@ class Display {
       });
     }
   };
-  
+
 
 
   static getDisplayTypes = async (req, res) => {

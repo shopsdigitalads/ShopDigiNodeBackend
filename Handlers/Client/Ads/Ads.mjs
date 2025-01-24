@@ -19,7 +19,7 @@ class Ads {
             }
 
             const [ad] = await pool.query(`
-            INSERT INTO MakeAdvertistment (make_ad__type,make_ad_description,make_ad_goal,business_type_id,budget,user_id) VALUES(?,?,?,?,?,?)
+            INSERT INTO MakeAdvertisement (make_ad__type,make_ad_description,make_ad_goal,business_type_id,budget,user_id) VALUES(?,?,?,?,?,?)
             `, [make_ad_type, make_ad_description, make_ad_goal, business_type_id, budget, user_id])
 
             if (ad.affectedRows === 1) {
@@ -54,7 +54,7 @@ class Ads {
 
             const ad = req.file
 
-            const folder_path = `${user_id}_${name}/Advertistment`;
+            const folder_path = `${user_id}_${name}/Advertisement`;
             const base_dir = path.resolve(__dirname, `../../../Media/Client/${folder_path}`);
 
             // Create directory if it doesn't exist
@@ -71,15 +71,15 @@ class Ads {
             const ad_path = path.relative(path.resolve(__dirname, "../../../"), new_path);
 
 
-            const [advertistment] = await pool.query(
-                `INSERT INTO Advertistment (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id) VALUES(?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id]
+            const [advertisement] = await pool.query(
+                `INSERT INTO Advertisement (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id) VALUES(?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id]
             )
 
-            if (advertistment.affectedRows === 1) {
+            if (advertisement.affectedRows === 1) {
                 return res.status(201).json({
                     status: true,
-                    ads_id: advertistment.insertId,
-                    message: "Advertistment Uploaded Succesfully. You can select area where you want to show it."
+                    ads_id: advertisement.insertId,
+                    message: "Advertisement Uploaded Succesfully. You can select area where you want to show it."
                 })
             } else {
                 throw new Error('Failed to insert data into database');
@@ -110,7 +110,7 @@ class Ads {
 
             // Bulk insert query
             const [result] = await pool.query(
-                `INSERT IGNORE INTO AdvertistmentLocation (address_id, ads_id) VALUES ?`,
+                `INSERT IGNORE INTO AdvertisementLocation (address_id, ads_id) VALUES ?`,
                 [values]
             );
 
@@ -141,7 +141,7 @@ class Ads {
             console.log("here")
             const ad = req.file
            
-            const folder_path = `${user_id}_${name}/Advertistment`;
+            const folder_path = `${user_id}_${name}/Advertisement`;
             const base_dir = path.resolve(__dirname, `../../../Media/Client/${folder_path}`);
 
             // Create directory if it doesn't exist
@@ -158,14 +158,14 @@ class Ads {
             const ad_path = path.relative(path.resolve(__dirname, "../../../"), new_path);
            
             const updated_ad = await pool.query(
-                `UPDATE Advertistment SET ad_type = ?, ad_path = ? where ads_id = ?  
+                `UPDATE Advertisement SET ad_type = ?, ad_path = ? where ads_id = ?  
                 `,[ad_type,ad_path,ad_id]
             )
             console.log(updated_ad)
             console.log("here")
             return res.status(200).json({
                 status:true,
-                message:"Advertistment Updated Successfully"
+                message:"Advertisement Updated Successfully"
             })
         } catch (error) {
             console.log(error)
@@ -196,7 +196,7 @@ class Ads {
 
             // Bulk insert query
             const [result] = await pool.query(
-                `INSERT IGNORE INTO AdvertistmentDisplay (display_id, ads_id) VALUES ?`,
+                `INSERT IGNORE INTO AdvertisementDisplay (display_id, ads_id) VALUES ?`,
                 [values]
             );
 
@@ -225,7 +225,7 @@ class Ads {
         try {
             const [no_of_days] = await pool.query(`
                 select SUM(DATEDIFF(A.end_date, A.start_date) + 1) AS total_days 
-                from Advertistment as A where ads_id = ?
+                from Advertisement as A where ads_id = ?
                 `, [ad_id])
 
             const [display_charge] = await pool.query(`
@@ -235,7 +235,7 @@ class Ads {
                 DT.display_type,
                 COUNT(AD.ad_display_id) AS display_count
                 FROM 
-                    AdvertistmentDisplay AD
+                    AdvertisementDisplay AD
                 JOIN 
                     Display D ON AD.display_id = D.display_id
                 JOIN 
@@ -299,14 +299,14 @@ class Ads {
             // Insert multiple rows into InvoiceDetail
             await pool.query(
                 `INSERT INTO InvoiceDetail 
-                    (display_type, display_charge, no_of_display, no_of_days, total_charge, invoice_id) 
+                    (display_type_id, display_charge, no_of_display, no_of_days, total_charge, invoice_id) 
                  VALUES ?`,
                 [invoice_details]
             );
 
-            // Insert into AdvertistmentBill
+            // Insert into AdvertisementBill
             const [bill] = await pool.query(
-                `INSERT INTO AdvertistmentBill 
+                `INSERT INTO AdvertisementBill 
                     (ad_amt, total_amt, paid_amt, ad_bill_status, ads_id, invoice_id) 
                  VALUES (?, ?, ?, ?, ?, ?)`,
                 [total_cost, total_cost, 0, "Unpaid", ad_id, invoice_id]
@@ -336,7 +336,7 @@ class Ads {
             const [upload_ads] = await pool.query(
                 `
                 SELECT *
-                FROM Advertistment ads
+                FROM Advertisement ads
                 LEFT JOIN BusinessType bt ON ads.business_type_id = bt.business_type_id
                 WHERE ads.user_id = ?
                 ORDER BY ads.ads_id DESC
@@ -347,7 +347,7 @@ class Ads {
             const [make_ads] = await pool.query(
                 `
                 SELECT *
-                FROM MakeAdvertistment ads
+                FROM MakeAdvertisement ads
                 LEFT JOIN BusinessType bt ON ads.business_type_id = bt.business_type_id
                 WHERE ads.user_id = ?
                 ORDER BY ads.make_ad_id DESC
@@ -387,7 +387,7 @@ class Ads {
                 a.cluster,
                 a.district,
                 a.state
-            FROM AdvertistmentLocation AS al
+            FROM AdvertisementLocation AS al
             INNER JOIN Address AS a
             ON al.address_id = a.address_id
             WHERE al.ads_id = ?;
@@ -470,7 +470,7 @@ class Ads {
                     d.display_video,
                     dt.display_type,
                     c.client_business_name 
-                    from AdvertistmentDisplay as ad
+                    from AdvertisementDisplay as ad
                     inner join Display as d
                     on ad.display_id = d.display_id
                     join DisplayType as dt

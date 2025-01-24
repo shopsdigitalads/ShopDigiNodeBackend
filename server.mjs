@@ -4,13 +4,14 @@ import os from 'os';
 import express from 'express';
 import RegistrationRoute from './Routers/Client/RegistratonRouter.mjs';
 import DisplayRouter from './Routers/Client/DisplayRouter.mjs';
-import AdsClientRouter from './Routers/Client/AdsRouter.mjs';
 import AuthRouter from './Routers/Authentication/AuthRouter.mjs';
 import Middleware from './Utils/MiddleWare.mjs';
 import KYCRouter from './Routers/Client/KYCRouter.mjs';
 import AddressRouter from './Routers/Client/AddressRouter.mjs';
 import BusinessRouter from './Routers/Client/BusinessRouter.mjs';
 import AdsRouter from './Routers/Client/AdsRouter.mjs';
+import DisplayAdsRouter from './Routers/Display/AdvertisementRouter.mjs';
+
 
 dotenv.config();
 
@@ -43,6 +44,7 @@ app.use("/kyc",KYCRouter)
 app.use("/business",BusinessRouter)
 app.use("/display",DisplayRouter);
 app.use("/ads",AdsRouter)
+app.use("/display_app",DisplayAdsRouter)
 
 
 const PORT = 5000;

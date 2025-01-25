@@ -72,7 +72,7 @@ class AdvertisementDisplay {
         }
       }
 
-console.log(adsWithFiles)
+      console.log(adsWithFiles)
       // Success response
       return res.status(200).json({
         status: true,
@@ -88,6 +88,27 @@ console.log(adsWithFiles)
       });
     }
   };
+
+  static displayStatus = async (req, res) => {
+    try {
+      const { display_status, display_id } = req.body;
+      if (!display_status) {
+        return res.status(400).json({
+          status: false,
+          message: "Error"
+        })
+      }
+      console.log(display_status)
+      console.log(display_id)
+
+      return res.status(200).json({
+        status: true,
+        message: "Data uploaded successfuly"
+      })
+    } catch (error) {
+
+    }
+  }
 }
 
 export default AdvertisementDisplay;

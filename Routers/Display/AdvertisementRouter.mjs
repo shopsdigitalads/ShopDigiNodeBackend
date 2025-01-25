@@ -5,5 +5,6 @@ const DisplayAdsRouter = express.Router()
 
 DisplayAdsRouter.post("/",AdvertisementDisplay.fetchAdsForDisplay)
 
+DisplayAdsRouter.post("/status",AdvertisementDisplay.displayStatus)
 
 export default DisplayAdsRouter

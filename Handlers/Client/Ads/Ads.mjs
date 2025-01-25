@@ -9,9 +9,9 @@ const __dirname = path.dirname(__filename);
 class Ads {
     static createAdd = async (req, res) => {
         try {
-            const { make_ad_type, make_ad_description, make_ad_goal, business_type_id, budget, user_id } = req.body;
+            const { make_ad_type, make_ad_description, make_ad_goal, business_type_id, budget, user_id,camp_name } = req.body;
 
-            if (!make_ad_type || !make_ad_description || !make_ad_goal || !business_type_id || !budget || !user_id) {
+            if (!make_ad_type  || !make_ad_goal || !business_type_id || !budget || !user_id) {
                 return res.status(400).json({
                     status: false,
                     message: "Data Missing"
@@ -19,8 +19,8 @@ class Ads {
             }
 
             const [ad] = await pool.query(`
-            INSERT INTO MakeAdvertisement (make_ad__type,make_ad_description,make_ad_goal,business_type_id,budget,user_id) VALUES(?,?,?,?,?,?)
-            `, [make_ad_type, make_ad_description, make_ad_goal, business_type_id, budget, user_id])
+            INSERT INTO MakeAdvertisement (make_ad__type,make_ad_description,make_ad_goal,business_type_id,budget,user_id,make_ad_campaign_name) VALUES(?,?,?,?,?,?,?)
+            `, [make_ad_type, make_ad_description, make_ad_goal, business_type_id, budget, user_id,camp_name])
 
             if (ad.affectedRows === 1) {
                 return res.status(201).json({
@@ -43,9 +43,9 @@ class Ads {
 
     static upload = async (req, res) => {
         try {
-            const { ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id } = req.body
+            const {camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id } = req.body
 
-            if (!ad_type || !ad_description || !ad_goal || !start_date || !end_date || !business_type_id || !user_id || !name || !req.file) {
+            if (!ad_type  || !ad_goal || !start_date || !end_date || !business_type_id || !user_id || !name || !req.file) {
                 return res.status(400).json({
                     status: false,
                     message: "Data Missing"
@@ -72,7 +72,7 @@ class Ads {
 
 
             const [advertisement] = await pool.query(
-                `INSERT INTO Advertisement (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id) VALUES(?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id]
+                `INSERT INTO Advertisement (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id,ad_campaign_name) VALUES(?,?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id,camp_name]
             )
 
             if (advertisement.affectedRows === 1) {

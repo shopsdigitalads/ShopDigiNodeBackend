@@ -55,7 +55,7 @@ class Ads {
             const ad = req.file
 
             const folder_path = `${user_id}_${name}/Advertisement`;
-            const base_dir = path.resolve(__dirname, `../../../Media/Client/${folder_path}`);
+            const base_dir = path.resolve(__dirname, `../../../../Media/Client/${folder_path}`);
 
             // Create directory if it doesn't exist
             if (!fs.existsSync(base_dir)) {
@@ -68,7 +68,7 @@ class Ads {
             const new_path = path.join(base_dir, new_file_name);
 
             fs.renameSync(old_path, new_path);
-            const ad_path = path.relative(path.resolve(__dirname, "../../../"), new_path);
+            const ad_path = path.relative(path.resolve(__dirname, "../../../../"), new_path);
 
 
             const [advertisement] = await pool.query(
@@ -142,7 +142,7 @@ class Ads {
             const ad = req.file
            
             const folder_path = `${user_id}_${name}/Advertisement`;
-            const base_dir = path.resolve(__dirname, `../../../Media/Client/${folder_path}`);
+            const base_dir = path.resolve(__dirname, `../../../../Media/Client/${folder_path}`);
 
             // Create directory if it doesn't exist
             if (!fs.existsSync(base_dir)) {
@@ -155,7 +155,7 @@ class Ads {
             const new_path = path.join(base_dir, new_file_name);
 
             fs.renameSync(old_path, new_path);
-            const ad_path = path.relative(path.resolve(__dirname, "../../../"), new_path);
+            const ad_path = path.relative(path.resolve(__dirname, "../../../../"), new_path);
            
             const updated_ad = await pool.query(
                 `UPDATE Advertisement SET ad_type = ?, ad_path = ? where ads_id = ?  

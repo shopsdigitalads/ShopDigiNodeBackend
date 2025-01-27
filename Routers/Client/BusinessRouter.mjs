@@ -14,12 +14,12 @@ const __dirname = path.dirname(__filename);
 
 const upload = multer({
     storage:multer.diskStorage({
-        destination: (req, file, cb) => {
-            cb(null, '/home/abhishek/Dev/NODE/SDA-Node-Backend/Media/Client/');
+        destination:(req,file,cb)=>{
+            cb(null,path.resolve(__dirname,'../../Media/Client'));
         },
-        filename: (req, file, cb) => {
-            cb(null, `${file.originalname}`);
-        },
+        filename:(req,file,cb)=>{
+            cb(null,file.originalname);
+        }
     }),
     fileFilter(req,file,cb){
         if(file.mimetype.startsWith('image/')){

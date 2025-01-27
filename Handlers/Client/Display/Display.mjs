@@ -31,7 +31,7 @@ class Display {
       }
 
       const folder_path = `${user_id}_${name}/${client_business_name}`;
-      const base_dir = path.resolve(__dirname, `../../../Media/Client/${folder_path}`);
+      const base_dir = path.resolve(__dirname, `../../../../Media/Client/${folder_path}`);
 
       // Create directory if it doesn't exist
       if (!fs.existsSync(base_dir)) {
@@ -53,7 +53,7 @@ class Display {
           const new_path = path.join(base_dir, new_file_name);
 
           fs.renameSync(old_path, new_path);
-          file_paths[file] = path.relative(path.resolve(__dirname, "../../../"), new_path);
+          file_paths[file] = path.relative(path.resolve(__dirname, "../../../../"), new_path);
         } else {
           return res.status(400).json({
             status: false,
@@ -140,7 +140,7 @@ class Display {
       const file_path = [];
       if (Object.keys(valid_files).length > 0) {
         const folder_name = `${user_id}_${name}/${client_business_name}`;
-        const base_dir = path.resolve(__dirname, `../../../Media/Client/${folder_name}`);
+        const base_dir = path.resolve(__dirname, `../../../../Media/Client/${folder_name}`);
         const files = req.files;
         for (const field of i_files) {
           if (files[field][0]) {

@@ -182,7 +182,7 @@ class Address {
                 on a.client_business_id = c.client_business_id
                 Left join Display d
                 on c.client_business_id = d.client_business_id
-                WHERE c.business_type_id !=7 and 
+                WHERE c.business_type_id !=? and 
                 c.client_business_status ="Approved" and 
                 d.display_status = "Approved" or d.display_status = "Active"
                 GROUP BY state, district, cluster, pin_code, area, address_id 

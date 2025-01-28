@@ -56,7 +56,7 @@ class AdvertisementDisplay {
       for (const ad of ads) {
         try {
           // Resolve the file path
-          const filePath = path.resolve(__dirname, "../../../", ad.ad_path); // Adjust the file path
+          const filePath = path.resolve(__dirname, "../../../../", ad.ad_path); // Adjust the file path
           const fileContent = fs.readFileSync(filePath, { encoding: "base64" }); // Read and encode file as Base64
           adsWithFiles.push({
             ...ad,

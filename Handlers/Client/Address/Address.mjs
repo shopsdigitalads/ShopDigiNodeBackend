@@ -109,7 +109,7 @@ class Address {
     static updateAddress = async (req, res) => {
         try {
             const { field, data } = req.body;
-          
+
             const update_field = JSON.parse(field);
             const update_data = JSON.parse(data);
 
@@ -177,16 +177,17 @@ class Address {
                 area, 
                 address_id, 
                 pin_code
-                FROM Address as a
-                INNER JOIN ClientBusiness as c
-                on a.client_business_id = c.client_business_id
-                Left join Display d
-                on c.client_business_id = d.client_business_id
-                WHERE c.business_type_id !=? and 
-                c.client_business_status ="Approved" and 
-                d.display_status = "Approved" or d.display_status = "Active"
-                GROUP BY state, district, cluster, pin_code, area, address_id 
-                ORDER BY state, district, cluster, pin_code, area;
+            FROM Address as a
+            INNER JOIN ClientBusiness as c
+                ON a.client_business_id = c.client_business_id
+            LEFT JOIN Display d
+                ON c.client_business_id = d.client_business_id
+            WHERE c.business_type_id != ?
+                AND c.client_business_status = "Approved" 
+                AND (d.display_status = "Approved" OR d.display_status = "Active")
+            GROUP BY state, district, cluster, pin_code, area, address_id 
+            ORDER BY state, district, cluster, pin_code, area;
+
           `;
 
             // Execute the query
@@ -252,18 +253,18 @@ class Address {
             const [address] = await pool.query(
                 `
                 SELECT * From Address WHERE user_id = ?`
-                ,[user_id]
+                , [user_id]
             )
 
             return res.status(200).json({
-                status:true,
-                message:"Address Fetch Successfully",
-                address:address
+                status: true,
+                message: "Address Fetch Successfully",
+                address: address
             })
         } catch (error) {
             return res.status(500).json({
-                status:false,
-                message:"Something Went Wrong"
+                status: false,
+                message: "Something Went Wrong"
             })
         }
     }

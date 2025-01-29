@@ -164,7 +164,8 @@ class Business {
 
             const final_fields = update_field.concat(i_files);
             const update_query = final_fields.join(" = ?,") + " = ?"
-            const query = `UPDATE ClientBusiness SET ${update_query} WHERE client_business_id = ?`;
+            const query = `UPDATE ClientBusiness SET ${update_query} ,client_business_status = "On Review" WHERE client_business_id = ?`;
+            
             const final_data = update_data.concat(file_path)
             final_data.push(client_business_id);
 

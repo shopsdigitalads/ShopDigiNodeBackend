@@ -300,7 +300,33 @@ class Display {
     }
   }
 
- 
+ static getDisplayHistory = async(req,res)=>{
+  try {
+    const {display_id} = req.params;
+    if(!display_id){
+      return res.status(400).json({
+        status:false,
+        message:"Display ID Missing"
+      })
+    }
+
+    const [display_earning] = await pool.query(
+      `SELECT * FROM DisplayEarning WHERE display_id = ?`,[display_id]
+    )
+
+    return res.status(200).json({
+      status:true,
+      message:"Display History Fetch Successfully",
+      display_earning:display_earning
+    })
+  } catch (e) {
+    console.log(e)
+    return res.status(500).json({
+      status:false,
+      message:"Inernal Server Error"
+    })
+  }
+ } 
 
 }
 

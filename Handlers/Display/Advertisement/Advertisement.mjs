@@ -3,6 +3,7 @@ import pool from "../../../Database/Database.mjs";
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import path from 'path';
+import moment from "moment";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -71,8 +72,6 @@ class AdvertisementDisplay {
           });
         }
       }
-
-      console.log(adsWithFiles)
       // Success response
       return res.status(200).json({
         status: true,
@@ -101,12 +100,67 @@ class AdvertisementDisplay {
       console.log(display_status)
       console.log(display_id)
 
+      const data = {};
+      display_status.forEach(status => {
+        const date = status.date;
+        const start_time = moment(status.start_time, 'HH:mm:ss');
+        const end_time = moment(status.end_time, 'HH:mm:ss');
+        const active_time = moment.duration(end_time.diff(start_time)).asMinutes();
+
+
+        if (data[date]) {
+          data[date].active_time += active_time;
+        } else {
+          data[date] = {
+            active_time: active_time
+          };
+        }
+      });
+
+
+
+      console.log(data);
+      const totalInactiveMinutes = 10 * 60;
+
+      for (const date of Object.keys(data)) {
+        const inactive_time = totalInactiveMinutes - data[date].active_time;
+
+        data[date].inactive_time = inactive_time < 0 ? 0 : inactive_time; // Correct key assignment
+
+        // Execute the query correctly with await
+        const [display_earning] = await pool.query(
+          `SELECT * FROM DisplayEarning WHERE earning_date = ? AND display_id = ?`,
+          [date, display_id]
+        );
+
+        if (display_earning.length > 0) {
+          let earning = display_earning[0];
+          data[date].active_time += earning.active_time
+          let inactive_time = totalInactiveMinutes - data[date].active_time;
+
+          await pool.query(
+            `UPDATE DisplayEarning SET active_time = ?, inactive_time = ? WHERE display_id = ? AND earning_date = ?
+`, [data[date].active_time, inactive_time, display_id, date]
+          )
+        } else {
+          await pool.query(
+            `INSERT INTO DisplayEarning (active_time, inactive_time, earning_date, display_id) VALUES (?, ?, ?, ?)
+`, [data[date].active_time, data[date].inactive_time, date, display_id]
+          )
+        }
+      }
+
       return res.status(200).json({
         status: true,
         message: "Data uploaded successfuly"
       })
     } catch (error) {
-
+      console.error(error);
+      return res.status(500).json({
+        status: false,
+        message: "Internal server error",
+      });
+    
     }
   }
 }

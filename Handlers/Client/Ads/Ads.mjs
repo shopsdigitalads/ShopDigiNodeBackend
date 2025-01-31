@@ -19,7 +19,7 @@ class Ads {
             }
 
             const [ad] = await pool.query(`
-            INSERT INTO MakeAdvertisement (make_ad__type,make_ad_description,make_ad_goal,business_type_id,budget,user_id,make_ad_campaign_name) VALUES(?,?,?,?,?,?,?)
+            INSERT INTO MakeAdvertisement (make_ad_type,make_ad_description,make_ad_goal,business_type_id,budget,user_id,make_ad_campaign_name) VALUES(?,?,?,?,?,?,?)
             `, [make_ad_type, make_ad_description, make_ad_goal, business_type_id, budget, user_id, camp_name])
 
             if (ad.affectedRows === 1) {
@@ -44,7 +44,6 @@ class Ads {
     static upload = async (req, res) => {
         try {
             const { camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id } = req.body
-
             if (!ad_type || !ad_goal || !start_date || !end_date || !business_type_id || !user_id || !name || !req.file) {
                 return res.status(400).json({
                     status: false,
@@ -138,6 +137,7 @@ class Ads {
         try {
             const { camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id, ad_id, add_action } = req.body;
             const ad = req.file
+            
             console.log(add_action)
             const folder_path = `${user_id}_${name}/Advertisement`;
             const base_dir = path.resolve(__dirname, `../../../../Media/Client/${folder_path}`);
@@ -372,7 +372,7 @@ class Ads {
                 ON ads.business_type_id = bt.business_type_id
             LEFT JOIN AdvertisementBill AS ab 
                 ON ads.ads_id = ab.ads_id
-            WHERE ads.user_id = 1
+            WHERE ads.user_id = ?
             ORDER BY ads.ads_id DESC;
                 `,
                 [user_id]

@@ -170,25 +170,25 @@ class Address {
         try {
             const { business_type_id } = req.params;
             const query = `
-                SELECT 
-                state, 
-                district, 
-                cluster, 
-                area, 
-                address_id, 
-                pin_code
-            FROM Address as a
-            INNER JOIN ClientBusiness as c
-                ON a.client_business_id = c.client_business_id
-            LEFT JOIN Display d
-                ON c.client_business_id = d.client_business_id
-            WHERE c.business_type_id != ?
-                AND c.client_business_status = "Approved" 
-                AND (d.display_status = "Approved" OR d.display_status = "Active")
-            GROUP BY state, district, cluster, pin_code, area, address_id 
-            ORDER BY state, district, cluster, pin_code, area;
+            SELECT 
+            state, 
+            district, 
+            cluster, 
+            area, 
+            address_id, 
+            pin_code
+        FROM Address as a
+        INNER JOIN ClientBusiness as c
+            ON a.client_business_id = c.client_business_id
+        LEFT JOIN Display d
+            ON c.client_business_id = d.client_business_id
+        WHERE c.business_type_id != ?
+            AND c.client_business_status = "Approved" 
+            AND (d.display_status = "Approved" OR d.display_status = "Active")
+        GROUP BY state, district, cluster, pin_code, area, address_id 
+        ORDER BY state, district, cluster, pin_code, area;
 
-          `;
+      `;
 
             // Execute the query
             const [rows] = await pool.query(query, [business_type_id]);

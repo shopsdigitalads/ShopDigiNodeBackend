@@ -9,9 +9,9 @@ const __dirname = path.dirname(__filename);
 class Ads {
     static createAdd = async (req, res) => {
         try {
-            const { make_ad_type, make_ad_description, make_ad_goal, business_type_id, budget, user_id,camp_name } = req.body;
+            const { make_ad_type, make_ad_description, make_ad_goal, business_type_id, budget, user_id, camp_name } = req.body;
 
-            if (!make_ad_type  || !make_ad_goal || !business_type_id || !budget || !user_id) {
+            if (!make_ad_type || !make_ad_goal || !business_type_id || !budget || !user_id) {
                 return res.status(400).json({
                     status: false,
                     message: "Data Missing"
@@ -20,7 +20,7 @@ class Ads {
 
             const [ad] = await pool.query(`
             INSERT INTO MakeAdvertisement (make_ad__type,make_ad_description,make_ad_goal,business_type_id,budget,user_id,make_ad_campaign_name) VALUES(?,?,?,?,?,?,?)
-            `, [make_ad_type, make_ad_description, make_ad_goal, business_type_id, budget, user_id,camp_name])
+            `, [make_ad_type, make_ad_description, make_ad_goal, business_type_id, budget, user_id, camp_name])
 
             if (ad.affectedRows === 1) {
                 return res.status(201).json({
@@ -43,9 +43,9 @@ class Ads {
 
     static upload = async (req, res) => {
         try {
-            const {camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id } = req.body
+            const { camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id } = req.body
 
-            if (!ad_type  || !ad_goal || !start_date || !end_date || !business_type_id || !user_id || !name || !req.file) {
+            if (!ad_type || !ad_goal || !start_date || !end_date || !business_type_id || !user_id || !name || !req.file) {
                 return res.status(400).json({
                     status: false,
                     message: "Data Missing"
@@ -72,7 +72,7 @@ class Ads {
 
 
             const [advertisement] = await pool.query(
-                `INSERT INTO Advertisement (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id,ad_campaign_name) VALUES(?,?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id,camp_name]
+                `INSERT INTO Advertisement (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id,ad_campaign_name) VALUES(?,?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, camp_name]
             )
 
             if (advertisement.affectedRows === 1) {
@@ -136,11 +136,9 @@ class Ads {
 
     static updateAd = async (req, res) => {
         try {
-            console.log("here")
-            const { ad_type, ad_id,user_id,name } = req.body;
-            console.log("here")
+            const { camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id, ad_id, add_action } = req.body;
             const ad = req.file
-           
+            console.log(add_action)
             const folder_path = `${user_id}_${name}/Advertisement`;
             const base_dir = path.resolve(__dirname, `../../../../Media/Client/${folder_path}`);
 
@@ -156,22 +154,52 @@ class Ads {
 
             fs.renameSync(old_path, new_path);
             const ad_path = path.relative(path.resolve(__dirname, "../../../../"), new_path);
-           
-            const updated_ad = await pool.query(
-                `UPDATE Advertisement SET ad_type = ?, ad_path = ? where ads_id = ?  
-                `,[ad_type,ad_path,ad_id]
-            )
-            console.log(updated_ad)
-            console.log("here")
+
+            if (add_action == "Update") {
+                const updated_ad = await pool.query(
+                    `UPDATE Advertisement SET ad_type = ?, ad_path = ? where ads_id = ?  
+                    `, [ad_type, ad_path, ad_id]
+                )
+            } else {
+                const old_ad_id = ad_id
+                const today = new Date();
+                const formattedStartDate = today.toISOString().slice(0, 19).replace("T", " ");
+                const formattedEndDate = new Date(end_date).toISOString().slice(0, 19).replace("T", " ");
+
+                const [advertisement] = await pool.query(
+                    `INSERT INTO Advertisement (ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, ad_campaign_name) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                    [ad_type, ad_path, ad_description, ad_goal, formattedStartDate, formattedEndDate, business_type_id, user_id, emp_id, camp_name]
+                );
+
+                const new_ad_id = advertisement.insertId
+                const [location] = await pool.query(`
+                    INSERT IGNORE INTO AdvertisementLocation (address_id, ads_id)
+                    SELECT address_id, ? FROM AdvertisementLocation WHERE ads_id = ?;
+                    `, [new_ad_id, old_ad_id])
+                const [display] = await pool.query(`
+                    INSERT IGNORE INTO AdvertisementDisplay(display_id, ads_id)
+                    SELECT display_id, ? FROM AdvertisementDisplay WHERE ads_id = ?;
+                    `, [new_ad_id, old_ad_id])
+                    console.log(old_ad_id)
+                const [AdvertisementBill] = await pool.query(`
+                        INSERT INTO AdvertisementBill (ad_amt, total_amt, paid_amt, ad_bill_status, ads_id, invoice_id) 
+                        SELECT ad_amt, total_amt, paid_amt, ad_bill_status, ?, invoice_id 
+                        FROM AdvertisementBill WHERE ads_id = ?;
+                    `, [new_ad_id, old_ad_id]);
+
+
+            }
+
             return res.status(200).json({
-                status:true,
-                message:"Advertisement Updated Successfully"
+                status: true,
+                message: "Advertisement Updated Successfully"
             })
         } catch (error) {
             console.log(error)
             return res.status(500).json({
-                status:false,
-                message:"Something went Wrong"
+                status: false,
+                message: "Something went Wrong"
             })
         }
     }
@@ -335,11 +363,17 @@ class Ads {
             // Query to fetch advertisements of the user
             const [upload_ads] = await pool.query(
                 `
-                SELECT *
-                FROM Advertisement ads
-                LEFT JOIN BusinessType bt ON ads.business_type_id = bt.business_type_id
-                WHERE ads.user_id = ?
-                ORDER BY ads.ads_id DESC
+                SELECT 
+                ads.*, 
+                ab.ad_bill_status,
+                bt.business_type_name  -- Select only necessary columns
+            FROM Advertisement AS ads
+            LEFT JOIN BusinessType AS bt 
+                ON ads.business_type_id = bt.business_type_id
+            LEFT JOIN AdvertisementBill AS ab 
+                ON ads.ads_id = ab.ads_id
+            WHERE ads.user_id = 1
+            ORDER BY ads.ads_id DESC;
                 `,
                 [user_id]
             );
@@ -354,7 +388,7 @@ class Ads {
                 `,
                 [user_id]
             );
-            console.log(upload_ads)
+            console.log(upload_ads[0])
 
             res.status(200).json(
                 {

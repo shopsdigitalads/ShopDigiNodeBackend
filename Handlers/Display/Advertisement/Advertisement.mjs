@@ -25,21 +25,21 @@ class AdvertisementDisplay {
       const adsIdsCondition = ads_ids.length > 0 ? `AND a.ads_id NOT IN (${ads_ids.map(() => '?').join(',')})` : '';
 
       const query = `
-  SELECT
-    a.ads_id,
-    a.ad_type,
-    a.ad_path,
-    a.start_date,
-    a.end_date
-  FROM Advertisement AS a
-  JOIN AdvertisementDisplay AS d
-    ON d.ads_id = a.ads_id
-  WHERE d.display_id = ?
-    ${adsIdsCondition}
-    AND a.start_date <= CURRENT_DATE()  
-    AND a.end_date >= CURRENT_DATE() 
-    AND (a.ad_status = "Approved" OR a.ad_status = "Published");
-`;
+            SELECT
+              a.ads_id,
+              a.ad_type,
+              a.ad_path,
+              a.start_date,
+              a.end_date
+            FROM Advertisement AS a
+            JOIN AdvertisementDisplay AS d
+              ON d.ads_id = a.ads_id
+            WHERE d.display_id = ?
+              ${adsIdsCondition}
+              AND a.start_date <= CURRENT_DATE()  
+              AND a.end_date >= CURRENT_DATE() 
+              AND (a.ad_status = "Approved" OR a.ad_status = "Published");
+          `;
 
 
       // Execute query
@@ -73,8 +73,6 @@ class AdvertisementDisplay {
           });
         }
       }
-
-      console.log(adsWithFiles)
       // Success response
       return res.status(200).json({
         status: true,

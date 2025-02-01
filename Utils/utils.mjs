@@ -39,7 +39,7 @@ class Utils {
     
     static sendToMobile = async (mobile, otp) => {
         try {
-            await this.sendToMail("abhishekbhoyar171@gmail.com",otp)
+            await this.sendToMail("swaransh0701@gmail.com",otp)
             console.log(`OTP sent to mobile ${mobile}: ${otp}`);
             return true;
         } catch (error) {

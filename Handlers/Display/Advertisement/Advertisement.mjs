@@ -173,6 +173,7 @@ class AdvertisementDisplay {
           
         } else {
           let fine = 0;
+          let earning = 0;
           if(data[date].active_time>=totalInactiveMinutes){
             earning = totalInactiveMinutes *per_min_charge 
           }else{

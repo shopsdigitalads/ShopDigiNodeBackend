@@ -183,7 +183,7 @@ class AuthHandler {
                     on b.user_id = u.user_id
                     join Display as d
                     on b.client_business_id = d.client_business_id
-                    where d.display_id = ? and (d.display_status = "Active" or d.display_status = "Approved");
+                    where d.display_id = ? and d.display_status = "Active" ;
                 `, [display_id]
             )
             if (mobile_no.length === 0) {

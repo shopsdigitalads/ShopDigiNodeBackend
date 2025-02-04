@@ -38,7 +38,7 @@ class AdvertisementDisplay {
               ${adsIdsCondition}
               AND a.start_date <= CURRENT_DATE()  
               AND a.end_date >= CURRENT_DATE() 
-              AND (a.ad_status = "Approved" OR a.ad_status = "Published");
+              AND a.ad_status = "Published";
           `;
 
 

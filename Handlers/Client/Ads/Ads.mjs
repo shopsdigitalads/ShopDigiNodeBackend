@@ -157,7 +157,7 @@ class Ads {
 
             if (add_action == "Update") {
                 const updated_ad = await pool.query(
-                    `UPDATE Advertisement SET ad_type = ?, ad_path = ? where ads_id = ?  
+                    `UPDATE Advertisement SET ad_type = ?, ad_path = ?, ad_status = "On Review" where ads_id = ?  
                     `, [ad_type, ad_path, ad_id]
                 )
             } else {

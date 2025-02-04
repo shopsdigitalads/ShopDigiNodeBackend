@@ -97,7 +97,7 @@ class Display {
   static updateDisplay = async (req, res) => {
     try {
       const { field, data, client_business_id, client_business_name, name, user_id, display_id,
-        display_type } = req.body;  
+        display_type } = req.body;
       const update_field = JSON.parse(field)
       const update_data = JSON.parse(data)
       console.log(update_data)
@@ -107,7 +107,7 @@ class Display {
           message: "Data Missing"
         })
       }
-    
+
       if (!Array.isArray(update_field) || !Array.isArray(update_data) || update_field.length !== update_data.length) {
         return res.status(400).json({
           status: false,
@@ -115,8 +115,8 @@ class Display {
         });
       }
 
-    
-      
+
+
       const allowed_fields = ['display_type_id', 'client_business_id'];
 
       if (!update_field.every(field => allowed_fields.includes(field))) {
@@ -125,7 +125,7 @@ class Display {
           message: "Invalid field"
         });
       }
-     
+
       const allowed_update_imgs = ['display_img', 'display_video'];
       const received_fields = Object.keys(req.files);
       const valid_files = {};
@@ -151,7 +151,7 @@ class Display {
             fs.renameSync(old_path, new_path);
             file_path.push(path.relative(path.resolve(__dirname, "../../../"), new_path));
           } else {
-           
+
             return res.status(400).json({
               status: false,
               message: `Data Missing`
@@ -159,7 +159,7 @@ class Display {
           }
         }
       }
- 
+
       const final_fields = update_field.concat(i_files);
       const update_query = final_fields.join(" = ?,") + " = ?"
       const query = `UPDATE Display SET display_status = "On Review", ${update_query} WHERE display_id = ?`;
@@ -220,7 +220,7 @@ class Display {
         INNER JOIN DisplayType AS dt
           ON d.display_type_id = dt.display_type_id
         WHERE address_id IN (?) 
-          AND (d.display_status = "Active" OR d.display_status = "Approved");
+          AND d.display_status = "Active";
       `;
 
       // Execute the query with the provided parameters
@@ -300,33 +300,53 @@ class Display {
     }
   }
 
- static getDisplayHistory = async(req,res)=>{
-  try {
-    const {display_id} = req.params;
-    if(!display_id){
-      return res.status(400).json({
-        status:false,
-        message:"Display ID Missing"
-      })
+  static getDisplayHistory = async (req, res) => {
+    try {
+      const { display_id, date } = req.params;
+      console.log(date);
+
+      if (!display_id) {
+        return res.status(400).json({
+          status: false,
+          message: "Display ID Missing",
+        });
+      }
+
+      // Fetch display earnings
+      const [display_earning] = await pool.query(
+        `SELECT * FROM DisplayEarning WHERE display_id = ? AND earning_date = ?`,
+        [display_id, date]
+      );
+
+      // Fetch list of ads for the given display_id and date
+      const [ads_list] = await pool.query(
+        `SELECT * 
+         FROM Advertisement as a
+         JOIN AdvertisementDisplay as ad
+         ON a.ads_id = ad.ads_id
+         join BusinessType as b
+on b.business_type_id = a.business_type_id
+         WHERE ad.display_id = ? 
+           AND (a.start_date <= ? AND a.end_date >= ?);`,
+        [display_id, date, date]
+      );
+      
+      console.log(ads_list)
+      return res.status(200).json({
+        status: true,
+        message: "Display History Fetch Successfully",
+        display_earning: display_earning,
+        ads_list: ads_list,
+      });
+    } catch (e) {
+      console.log(e);
+      return res.status(500).json({
+        status: false,
+        message: "Internal Server Error",
+      });
     }
+  };
 
-    const [display_earning] = await pool.query(
-      `SELECT * FROM DisplayEarning WHERE display_id = ?`,[display_id]
-    )
-
-    return res.status(200).json({
-      status:true,
-      message:"Display History Fetch Successfully",
-      display_earning:display_earning
-    })
-  } catch (e) {
-    console.log(e)
-    return res.status(500).json({
-      status:false,
-      message:"Inernal Server Error"
-    })
-  }
- } 
 
 }
 

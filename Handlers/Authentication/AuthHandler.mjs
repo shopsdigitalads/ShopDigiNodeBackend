@@ -115,54 +115,74 @@ class AuthHandler {
                 [receive]
             );
 
-            // Check if user exists in the client table
+            // Check if user exists in the Users table
             const [user] = await pool.query(
                 "SELECT * FROM Users WHERE mobile = ? OR email = ?",
                 [receive, receive]
             );
 
-            console.log(user[0])
-
-            // Set user existence flag
-            const user_exists = user.length > 0;
+            let user_exists = user.length > 0;
             let token;
+            let ads_count = 0;
+            let user_count = 0;
+            let is_active = false;
+
             if (user_exists) {
                 const payload = {
                     role: user[0].role,
                     mobile: receive
-                }
-                if (user[0].role == "Employee") {
-                    payload.emp_id = user[0].user_id
+                };
+
+                if (user[0].role === "Employee") {
+                    payload.emp_id = user[0].user_id;
+
+                    is_active = user[0].status === "Active"?true:false;
+                    if(is_active){
+                        const [adsCountResult] = await pool.query(
+                            `SELECT COUNT(*) as ads_count FROM Advertisement WHERE emp_id = ?`,
+                            [user[0].user_id]
+                        );
+                        const [userCountResult] = await pool.query(
+                            `SELECT COUNT(*) as user_count FROM Users WHERE emp_id = ?`,
+                            [user[0].user_id]
+                        );
+    
+                        ads_count = adsCountResult[0].ads_count;
+                        user_count = userCountResult[0].user_count;
+                    }
+                    
                 } else {
-                    payload.user_id = user[0].user_id
+                    payload.user_id = user[0].user_id;
                 }
+
                 token = Utils.generateToken(payload);
             } else {
-                const payload = {
+                token = Utils.generateToken({
                     new_user: true,
                     allowd_route: "/client",
                     type: "POST"
-                }
-                token = Utils.generateToken(payload);
+                });
             }
-
-            console.log(token)
 
             return res.status(200).json({
                 status: true,
                 message: "OTP verified successfully",
-                user_exists: user_exists,
-                user: user[0],
-                token: token
+                user_exists,
+                user: user_exists ? user[0] : null,
+                is_active:is_active,
+                ads_count,
+                user_count,
+                token
             });
         } catch (error) {
             console.error("Error in verifyOTP:", error);
-            res.status(500).json({
+            return res.status(500).json({
                 status: false,
                 message: "Internal Server Error"
             });
         }
     };
+
 
     static displayLogin = async (req, res) => {
         try {
@@ -298,7 +318,7 @@ class AuthHandler {
             );
 
             let token = Utils.generateToken({
-                display_id:receive
+                display_id: receive
             });
             console.log(token)
 

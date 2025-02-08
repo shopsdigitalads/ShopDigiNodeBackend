@@ -17,6 +17,14 @@ class Address {
 
 
             } = req.body;
+            console.log(pin_code,
+                area,
+                cluster,
+                district,
+                state,
+                google_map_location,
+                address_type,
+                user_id,)
             const client_business_id = req.client_business_id
             if (!pin_code || !area || !cluster || !district || !state || !address_type) {
                 return {

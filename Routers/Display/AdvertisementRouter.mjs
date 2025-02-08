@@ -3,8 +3,9 @@ import AdvertisementDisplay from '../../Handlers/Display/Advertisement/Advertise
 
 const DisplayAdsRouter = express.Router()
 
-DisplayAdsRouter.post("/",AdvertisementDisplay.fetchAdsForDisplay)
+DisplayAdsRouter.post("/ads",AdvertisementDisplay.fetchAdsForDisplay)
 
-DisplayAdsRouter.post("/status",AdvertisementDisplay.displayStatus)
+DisplayAdsRouter.get("/ads/:ads_id",AdvertisementDisplay.downloadAds)
+
 
 export default DisplayAdsRouter

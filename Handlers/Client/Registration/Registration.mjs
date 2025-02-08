@@ -7,29 +7,26 @@ class Register {
 
   static register = async (req, res) => {
     try {
-      console.log("here");
       const {
-        first_name, middle_name, last_name, mobile, email, role
+        first_name, middle_name, last_name, mobile, email, role,emp_id
       } = req.body;
      
       if (!first_name || !middle_name || !last_name || !mobile || !email || !role) {
-        console.log("here");
         return res.status(404).json({
           status: false,
           message: "Data Missing!"
         });
       }
-      console.log("here1");
+
       const query = `
         INSERT INTO Users (first_name, middle_name, last_name, mobile, email, role, emp_id) VALUES(?,?,?,?,?,?,?)
       `;
-      console.log("here2");
-      const values = [first_name, middle_name, last_name, mobile, email, role, req.emp_id];
+      const values = [first_name, middle_name, last_name, mobile, email, role,emp_id];
       const [result] = await pool.query(query, values);
       console.log(result);
       const user_id = result.insertId;
   
-      if (req.emp_id) {
+      if (emp_id) {
         console.log("here3");
         return res.status(201).json({
           status: true,

@@ -105,7 +105,7 @@ class Business {
             const { field, data, client_business_id, name, user_id } = req.body;
             const update_field = JSON.parse(field)
             const update_data = JSON.parse(data)
-            console.log("here")
+            console.log(update_data)
             if (!update_data || !update_field || !client_business_id || !name || !user_id) {
                 return res.status(400).json({
                     status: false,
@@ -144,7 +144,10 @@ class Business {
             const file_path = [];
             if (Object.keys(valid_files).length > 0) {
                 const folder_name = `${user_id}_${name}`;
-                const base_dir = path.resolve(__dirname, `../../../../Media/Client/${folder_name}`);
+                const base_dir = path.resolve(__dirname, `../../../../Media/Client/${folder_name}/${update_data[0]}`);
+                if (!fs.existsSync(base_dir)) {
+                    fs.mkdirSync(base_dir, { recursive: true })
+                }
                 const files = req.files;
                 for (const field of i_files) {
                     if (files[field][0]) {
@@ -185,6 +188,7 @@ class Business {
                 message: 'Successfully updated'
             });
         } catch (error) {
+            console.log(error)
             return res.status(500).json({
                 status: false,
                 message: "An Error Occured"

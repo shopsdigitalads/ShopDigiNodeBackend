@@ -11,6 +11,8 @@ import AddressRouter from './Routers/Client/AddressRouter.mjs';
 import BusinessRouter from './Routers/Client/BusinessRouter.mjs';
 import AdsRouter from './Routers/Client/AdsRouter.mjs';
 import DisplayAdsRouter from './Routers/Display/AdvertisementRouter.mjs';
+import ClinetRouter from './Routers/Employee/ClientRouter.mjs';
+import DisplayEarningRouter from './Routers/Display/DisplayRouter.mjs';
 
 
 dotenv.config();
@@ -44,8 +46,13 @@ app.use("/kyc",KYCRouter)
 app.use("/business",BusinessRouter)
 app.use("/display",DisplayRouter);
 app.use("/ads",AdsRouter)
-app.use("/display_app",DisplayAdsRouter)
 
+
+
+app.use("/display/app",DisplayAdsRouter)
+app.use("/display/earning",DisplayEarningRouter)
+
+app.use("/employee",ClinetRouter)
 
 const PORT = 5000;
 

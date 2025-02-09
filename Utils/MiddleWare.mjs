@@ -17,7 +17,6 @@ class Middleware{
             }
             try {
                 const decoded = Middleware.vefigyToken(token);
-                console.log(decoded)
                 if(decoded.new_user){
                     if(req.url === decoded.allowd_route && req.method === decoded.type){
                         next();

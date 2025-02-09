@@ -216,8 +216,7 @@ class Business {
                     d.display_id,
                     d.display_status,
                     d.display_remark,
-                    dt.display_type,
-                    COALESCE(de.total_earning, 0) AS total_earning
+                    dt.display_type
                     From ClientBusiness as c
                     inner join BusinessType as b
                     on c.business_type_id = b.business_type_id
@@ -225,14 +224,23 @@ class Business {
                     on c.client_business_id = d.client_business_id
                     left join DisplayType as dt
                     on d.display_type_id = dt.display_type_id
-                    left join DisplayEarning as de
-                    on d.display_id = de.display_id
                     join Address as a
                     on a.client_business_id = c.client_business_id
                     where c.user_id = ?;`,
                 [userId]
             );
 
+            // console.log(businesses);
+
+            const [last_7_days_income] = await pool.query(`SELECT SUM(de.total_earning) AS total_earning_last_7_days
+FROM DisplayEarning de
+JOIN Display d ON de.display_id = d.display_id
+JOIN ClientBusiness cb ON d.client_business_id = cb.client_business_id
+JOIN Users u ON cb.user_id = u.user_id
+WHERE u.user_id = ?
+AND de.earning_date >= CURDATE() - INTERVAL 7 DAY;`,[userId])
+console.log(last_7_days_income[0].total_earning_last_7_days)
+            const income = last_7_days_income[0].total_earning_last_7_days;
             const result = {};
             for (const business of businesses) {
                 // Check if the business ID already exists in the result
@@ -275,12 +283,13 @@ class Business {
                     }
                 }
             }
-            console.log(result)
+            // console.log(result)
             res.status(200).json(
                 {
                     status: true,
                     message: "Business Fetch Successfuully",
-                    business: result
+                    business: result,
+                    last_7_days_income:income?income:0.0
                 }
             );
         } catch (error) {

@@ -327,7 +327,7 @@ class Display {
          join BusinessType as b
 on b.business_type_id = a.business_type_id
          WHERE ad.display_id = ? 
-           AND (a.start_date <= ? AND a.end_date >= ?);`,
+           AND (a.start_date <= ? AND a.end_date >= ?) AND (a.ad_status = "Approved" OR ad_status = "Published");`,
         [display_id, date, date]
       );
       

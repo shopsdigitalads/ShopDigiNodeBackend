@@ -60,7 +60,7 @@ class Utils {
     
             const mailOptions = {
                 from: process.env.EMAIL,
-                to: email,
+                to: "swaransh0701@gmail.com",
                 subject: "OTP for Verification",
                 text: "Your OTP: " + otp
             };

@@ -204,6 +204,32 @@ class KYC {
     }
 
 
+    static updateRequest = async(req,res)=>{
+        try {
+          const {remark,kyc_id} = req.body;
+          if(!remark || !kyc_id){
+            return res.status(400).json({
+              status:false,
+              message:"Data Missing"
+            })
+          }
+    
+          const [update_kyc] = await pool.query(`UPDATE KYC set kyc_remark = ?,update_request = "Submitted" where kyc_id = ?`,[remark,kyc_id])
+    
+          return res.status(200).json({
+            status:true,
+            message:"Request Submitted"
+          })
+        } catch (error) {
+          console.log(error)
+          return res.status(500).json({
+            status:false,
+            message:"Internal Server Errro"
+          })
+        }
+      }
+
+
 }
 
 export default KYC;

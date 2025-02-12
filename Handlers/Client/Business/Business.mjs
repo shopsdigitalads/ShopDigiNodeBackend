@@ -206,6 +206,7 @@ class Business {
                     c.client_business_name,
                     c.client_business_status,
                     c.client_business_remark,
+                    c.update_request as business_update,
                     a.address_id,
                     a.pin_code,
                     a.area,
@@ -216,6 +217,7 @@ class Business {
                     d.display_id,
                     d.display_status,
                     d.display_remark,
+                    d.update_request as display_update,
                     dt.display_type
                     From ClientBusiness as c
                     inner join BusinessType as b
@@ -251,6 +253,7 @@ console.log(last_7_days_income[0].total_earning_last_7_days)
                             display_id: business.display_id,
                             display_status: business.display_status,
                             display_type: business.display_type,
+                            display_update:business.display_update,
                             total_earning: business.total_earning,
                         };
                         result[business.client_business_id].displays.push(display);
@@ -262,6 +265,7 @@ console.log(last_7_days_income[0].total_earning_last_7_days)
                         client_business_id: business.client_business_id,
                         client_business_remark: business.client_business_remark,
                         business_type_name: business.business_type_name,
+                        business_update:business.business_update,
                         client_business_status: business.client_business_status,
                         address_id:business.address_id,
                         pin_code:business.pin_code,
@@ -271,12 +275,28 @@ console.log(last_7_days_income[0].total_earning_last_7_days)
                         state:business.state,
                         displays: [],
                     };
+                    console.log({
+                        client_business_name: business.client_business_name,
+                        client_business_id: business.client_business_id,
+                        client_business_remark: business.client_business_remark,
+                        business_type_name: business.business_type_name,
+                        business_update:business.business_update,
+                        client_business_status: business.client_business_status,
+                        address_id:business.address_id,
+                        pin_code:business.pin_code,
+                        area:business.area,
+                        cluster:business.cluster,
+                        district:business.district,
+                        state:business.state,
+                        displays: [],
+                    })
                     // Only add the display if display_id is not null or undefined
                     if (business.display_id != null) {
                         const display = {
                             display_id: business.display_id,
                             display_status: business.display_status,
                             display_type: business.display_type,
+                            display_update:business.display_update,
                             total_earning: business.total_earning,
                         };
                         result[business.client_business_id].displays.push(display);
@@ -343,6 +363,31 @@ console.log(last_7_days_income[0].total_earning_last_7_days)
             })
         }
     }
+
+    static updateRequest = async(req,res)=>{
+        try {
+          const {remark,client_business_id} = req.body;
+          if(!remark || !client_business_id){
+            return res.status(400).json({
+              status:false,
+              message:"Data Missing"
+            })
+          }
+    
+          const [update_business] = await pool.query(`UPDATE ClientBusiness set client_business_remark = ?,update_request = "Submitted" where client_business_id = ?`,[remark,client_business_id])
+    
+          return res.status(200).json({
+            status:true,
+            message:"Request Submitted"
+          })
+        } catch (error) {
+          console.log(error)
+          return res.status(500).json({
+            status:false,
+            message:"Internal Server Errro"
+          })
+        }
+      }
 }
 
 export default Business

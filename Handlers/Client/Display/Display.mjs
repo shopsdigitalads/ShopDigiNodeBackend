@@ -347,6 +347,31 @@ on b.business_type_id = a.business_type_id
     }
   };
 
+  static updateRequest = async(req,res)=>{
+    try {
+      const {remark,display_id} = req.body;
+      if(!remark || !display_id){
+        return res.status(400).json({
+          status:false,
+          message:"Data Missing"
+        })
+      }
+
+      const [update_display] = await pool.query(`UPDATE Display set display_remark = ?,update_request = "Submitted" where display_id = ?`,[remark,display_id])
+
+      return res.status(200).json({
+        status:true,
+        message:"Request Submitted"
+      })
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({
+        status:false,
+        message:"Internal Server Errro"
+      })
+    }
+  }
+
 
 }
 

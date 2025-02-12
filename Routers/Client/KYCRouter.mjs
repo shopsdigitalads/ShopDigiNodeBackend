@@ -48,5 +48,5 @@ KYCRouter.put('/',
 )
 
 KYCRouter.get("/:user_id",KYC.getKycOfUser)
-
+KYCRouter.put("/update_request",KYC.updateRequest)
 export default KYCRouter

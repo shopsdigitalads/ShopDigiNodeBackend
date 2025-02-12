@@ -49,4 +49,5 @@ DisplayRouter.get("/types",Display.getDisplayTypes)
 DisplayRouter.post("/ads",Display.getDisplayWithArea)
 DisplayRouter.get("/history/:display_id/:date",Display.getDisplayHistory)
 
+DisplayRouter.put("/update_request",Display.updateRequest)
 export default DisplayRouter;

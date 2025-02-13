@@ -270,9 +270,9 @@ class AuthHandler {
 
     static verifyDisplayOTP = async (req, res) => {
         try {
-            const { receive, otp } = req.body;
+            const { receive, otp ,fcm_token} = req.body;
 
-            if (!receive || !otp) {
+            if (!receive || !otp || !fcm_token) {
                 return res.status(400).json({
                     status: false,
                     message: "Required data missing"
@@ -316,6 +316,10 @@ class AuthHandler {
                 "UPDATE OtpVerification SET verified = true WHERE mobile_no_or_email = ?",
                 [receive]
             );
+
+            await pool.query(
+                "UPDATE Display set fcm_token = ? where display_id = ?",[fcm_token,receive]
+            )
 
             let token = Utils.generateToken({
                 display_id: receive

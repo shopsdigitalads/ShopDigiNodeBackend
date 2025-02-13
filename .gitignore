@@ -4,6 +4,8 @@ node_modules/
 # Media files
 Media/
 
+google-services.json
+serviceaccount.json
 # Environment variables
 .env
 

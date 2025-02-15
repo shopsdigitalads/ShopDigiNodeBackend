@@ -15,11 +15,14 @@ class NotificationUtils {
 
     static async sendNotificationToDisplay(fcm_tokens, title, body) {
         const message = {
-            tokens: fcm_tokens, 
+            tokens: fcm_tokens,
             notification: {
                 title: title,
                 body: body,
             },
+            data: {
+                action: "download_new_ads"
+            }
         };
 
         try {

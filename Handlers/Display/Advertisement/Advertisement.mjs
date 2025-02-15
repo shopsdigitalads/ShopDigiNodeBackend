@@ -28,7 +28,8 @@ class AdvertisementDisplay {
                 a.ad_type,
                 a.ad_path,
                 a.start_date,
-                a.end_date
+                a.end_date,
+                a.ad_status as status
             FROM Advertisement AS a
             JOIN AdvertisementDisplay AS d
                 ON d.ads_id = a.ads_id

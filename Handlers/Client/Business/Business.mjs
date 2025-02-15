@@ -213,6 +213,8 @@ class Business {
                     a.cluster,
                     a.district,
                     a.state,
+                    a.landmark,
+                    a.address_line,
                     b.business_type_name,
                     d.display_id,
                     d.display_status,

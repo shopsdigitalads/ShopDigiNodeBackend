@@ -103,7 +103,7 @@ class KYC {
                 });
             }
 
-            const allowed_fields = ['adhar_no', 'pan_no', 'acc_holder_name', 'acc_no', 'bank_ifsc', 'bank_name', 'bank_branch_name'];
+            const allowed_fields = ['adhar_no', 'pan_no', 'acc_holder_name', 'acc_no', 'bank_ifsc', 'bank_name', 'bank_branch_name',"update_request"];
             if (!update_field.every(field => allowed_fields.includes(field))) {
                 return res.status(400).json({
                     status: false,

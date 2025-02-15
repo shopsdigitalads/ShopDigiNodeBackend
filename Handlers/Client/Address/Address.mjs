@@ -13,24 +13,30 @@ class Address {
                 state,
                 google_map_location,
                 address_type,
+                landmark,
+                address_line,
                 user_id,
 
 
             } = req.body;
-            console.log(pin_code,
+            console.log(  pin_code,
+                pin_code,
                 area,
                 cluster,
                 district,
                 state,
                 google_map_location,
                 address_type,
+                landmark,
+                address_line,
                 user_id,)
+                
             const client_business_id = req.client_business_id
-            if (!pin_code || !area || !cluster || !district || !state || !address_type) {
+            if (!pin_code || !area || !cluster || !district || !state || !address_type || !landmark || !this.add) {
                 return {
                     status: false,
                     code: 400,
-                    message: "Missing required fields. Please provide pin_code, area, cluster, district, state, and address_type.",
+                    message: "Missing required fields",
                 }
             }
 
@@ -62,9 +68,11 @@ class Address {
                     state, 
                     google_map_location, 
                     address_type,
+                    landmark,
+                    address_line,
                     ${idField}
                 ) 
-                VALUES (?, ?, ?, ?, ?, ?, ?,?)
+                VALUES (?, ?, ?, ?, ?, ?, ?,?,?,?)
             `;
 
             const [result] = await pool.query(query, [
@@ -75,6 +83,8 @@ class Address {
                 state,
                 google_map_location,
                 address_type,
+                landmark,
+                address_line,
                 idValue,
             ]);
 
@@ -138,7 +148,8 @@ class Address {
                 });
             }
 
-            const allowed_fields = ['pin_code', 'area', 'cluster', 'district', 'state', 'google_map_location'];
+            const allowed_fields = ['pin_code', 'area', 'cluster', 'district', 'state', 'google_map_location','landmark','address_line',
+                "update_request"];
             if (!update_field.every(field => allowed_fields.includes(field))) {
                 return res.status(400).json({
                     status: false,

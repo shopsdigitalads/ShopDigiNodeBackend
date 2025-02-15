@@ -117,7 +117,7 @@ class Display {
 
 
 
-      const allowed_fields = ['display_type_id', 'client_business_id'];
+      const allowed_fields = ['display_type_id', 'client_business_id',"update_request"];
 
       if (!update_field.every(field => allowed_fields.includes(field))) {
         return res.status(400).json({

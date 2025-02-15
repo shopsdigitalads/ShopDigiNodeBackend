@@ -245,6 +245,8 @@ WHERE u.user_id = ?
 AND de.earning_date >= CURDATE() - INTERVAL 7 DAY;`,[userId])
 console.log(last_7_days_income[0].total_earning_last_7_days)
             const income = last_7_days_income[0].total_earning_last_7_days;
+
+
             const result = {};
             for (const business of businesses) {
                 // Check if the business ID already exists in the result
@@ -275,6 +277,8 @@ console.log(last_7_days_income[0].total_earning_last_7_days)
                         cluster:business.cluster,
                         district:business.district,
                         state:business.state,
+                        landmark:business.landmark,
+                        address_line:business.address_line,
                         displays: [],
                     };
                     console.log({

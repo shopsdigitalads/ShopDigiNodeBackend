@@ -41,6 +41,19 @@ class Ads {
         }
     }
 
+     static getFileSizeInMB = (filePath) => {
+        return new Promise((resolve, reject) => {
+            fs.stat(filePath, (err, stats) => {
+                if (err) {
+                    reject('Error getting file stats: ' + err);
+                    return;
+                }
+                const fileSizeInMB = stats.size / (1024 * 1024);  // Convert to MB
+                resolve(fileSizeInMB);
+            });
+        });
+    }
+
     static upload = async (req, res) => {
         try {
             const { camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id } = req.body
@@ -61,7 +74,18 @@ class Ads {
                 fs.mkdirSync(base_dir, { recursive: true });
             }
 
+            let is_optimize;
             const old_path = ad.path;
+            const fileSizeInMB = await Ads.getFileSizeInMB(old_path);
+            if (fileSizeInMB > 50) {
+                console.log("here");
+                is_optimize = 0;
+            } else {
+                console.log("herejjjj");
+                is_optimize = 1;
+            }
+            console.log(is_optimize)
+
             const file_extension = path.extname(ad.originalname) || ".jpg";
             const new_file_name = `${ad.fieldname}_${Date.now()}${file_extension}`;
             const new_path = path.join(base_dir, new_file_name);
@@ -71,7 +95,7 @@ class Ads {
 
 
             const [advertisement] = await pool.query(
-                `INSERT INTO Advertisement (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id,ad_campaign_name) VALUES(?,?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, camp_name]
+                `INSERT INTO Advertisement (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id,ad_campaign_name,is_optimize) VALUES(?,?,?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, camp_name,is_optimize]
             )
 
             if (advertisement.affectedRows === 1) {
@@ -137,7 +161,7 @@ class Ads {
         try {
             const { camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id, ad_id, add_action } = req.body;
             const ad = req.file
-            
+
             console.log(add_action)
             const folder_path = `${user_id}_${name}/Advertisement`;
             const base_dir = path.resolve(__dirname, `../../../../Media/Client/${folder_path}`);
@@ -148,6 +172,18 @@ class Ads {
             }
 
             const old_path = ad.path;
+
+            let is_optimize;
+            const fileSizeInMB = await Ads.getFileSizeInMB(old_path);
+            if (fileSizeInMB > 50) {
+                console.log("here");
+                is_optimize = 0;
+            } else {
+                console.log("herejjjj");
+                is_optimize = 1;
+            }
+            console.log(is_optimize)
+
             const file_extension = path.extname(ad.originalname) || ".jpg";
             const new_file_name = `${ad.fieldname}_${Date.now()}${file_extension}`;
             const new_path = path.join(base_dir, new_file_name);
@@ -157,8 +193,8 @@ class Ads {
 
             if (add_action == "Update") {
                 const updated_ad = await pool.query(
-                    `UPDATE Advertisement SET ad_type = ?, ad_path = ?, ad_status = "On Review" where ads_id = ?  
-                    `, [ad_type, ad_path, ad_id]
+                    `UPDATE Advertisement SET ad_type = ?, ad_path = ?, ad_status = "On Review",is_optimize = ? where ads_id = ?  
+                    `, [ad_type, ad_path,is_optimize, ad_id]
                 )
             } else {
                 const old_ad_id = ad_id
@@ -167,9 +203,9 @@ class Ads {
                 const formattedEndDate = new Date(end_date).toISOString().slice(0, 19).replace("T", " ");
 
                 const [advertisement] = await pool.query(
-                    `INSERT INTO Advertisement (ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, ad_campaign_name) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-                    [ad_type, ad_path, ad_description, ad_goal, formattedStartDate, formattedEndDate, business_type_id, user_id, emp_id, camp_name]
+                    `INSERT INTO Advertisement (ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, ad_campaign_name,is_optimize) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`,
+                    [ad_type, ad_path, ad_description, ad_goal, formattedStartDate, formattedEndDate, business_type_id, user_id, emp_id, camp_name,is_optimize]
                 );
 
                 const new_ad_id = advertisement.insertId
@@ -181,7 +217,7 @@ class Ads {
                     INSERT IGNORE INTO AdvertisementDisplay(display_id, ads_id)
                     SELECT display_id, ? FROM AdvertisementDisplay WHERE ads_id = ?;
                     `, [new_ad_id, old_ad_id])
-                    console.log(old_ad_id)
+                console.log(old_ad_id)
                 const [AdvertisementBill] = await pool.query(`
                         INSERT INTO AdvertisementBill (ad_amt, total_amt, paid_amt, ad_bill_status, ads_id, invoice_id) 
                         SELECT ad_amt, total_amt, paid_amt, ad_bill_status, ?, invoice_id 

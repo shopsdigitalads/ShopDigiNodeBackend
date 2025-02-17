@@ -54,21 +54,9 @@ class Video {
             console.log(`directoryPath : ${directoryPath}`);
             console.log("🔹 New Path:", relativePath);
 
-            // ✅ Compress Video
             try {
-                await VideoCompress.compressVideo(filePath, new_path, 50);
-
-                // ✅ Update DB with new path
-                await pool.query(`UPDATE Advertisement SET ad_path = ?, is_optimize = 1 WHERE ads_id = ?`, [relativePath, ads_id]);
-                
-
-                fs.unlink(filePath, (err) => {
-                    if (err) {
-                        console.error("❌ Failed to delete original file:", err);
-                    } else {
-                        console.log("✅ Original file deleted successfully!");
-                    }
-                });
+                await pool.query(`UPDATE Advertisement SET is_optimize = "Optimizing" WHERE ads_id = ?`, [ads_id]);
+                VideoCompress.compressVideo(filePath, new_path,relativePath,ads_id, 50);                
                 console.log("✅ Video compressed successfully!");
                 return res.status(201).json({
                     status: true,

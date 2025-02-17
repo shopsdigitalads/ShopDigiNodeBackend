@@ -78,11 +78,9 @@ class Ads {
             const old_path = ad.path;
             const fileSizeInMB = await Ads.getFileSizeInMB(old_path);
             if (fileSizeInMB > 50) {
-                console.log("here");
-                is_optimize = 0;
+                is_optimize = "Not Optimize";
             } else {
-                console.log("herejjjj");
-                is_optimize = 1;
+                is_optimize = "Optimized";
             }
             console.log(is_optimize)
 
@@ -176,13 +174,10 @@ class Ads {
             let is_optimize;
             const fileSizeInMB = await Ads.getFileSizeInMB(old_path);
             if (fileSizeInMB > 50) {
-                console.log("here");
-                is_optimize = 0;
+                is_optimize = "Not Optimize";
             } else {
-                console.log("herejjjj");
-                is_optimize = 1;
+                is_optimize = "Optimized";
             }
-            console.log(is_optimize)
 
             const file_extension = path.extname(ad.originalname) || ".jpg";
             const new_file_name = `${ad.fieldname}_${Date.now()}${file_extension}`;

@@ -1,6 +1,7 @@
 import ffmpeg from "fluent-ffmpeg";
-import path from "path";
+import fs from "fs"
 import util from "util";
+import pool from "../Database/Database.mjs"
 
 class VideoCompress {
   static ffprobeAsync = util.promisify(ffmpeg.ffprobe);
@@ -15,7 +16,7 @@ class VideoCompress {
     }
   }
 
-  static async compressVideo(inputPath, outputPath, targetSizeMB = 50) {
+  static async compressVideo(inputPath, outputPath,relativePath,ads_id, targetSizeMB = 50) {
     try {
       // Get video duration
       const durationInSeconds = await VideoCompress.getVideoDuration(inputPath);
@@ -29,6 +30,15 @@ class VideoCompress {
 
       await VideoCompress.runFFmpeg(inputPath, outputPath, targetBitrate);
 
+      await pool.query(`UPDATE Advertisement SET ad_path = ?, is_optimize = "Optimized" WHERE ads_id = ?`, [relativePath, ads_id]);
+
+      fs.unlink(inputPath, (err) => {
+        if (err) {
+            console.error("❌ Failed to delete original file:", err);
+        } else {
+            console.log("✅ Original file deleted successfully!");
+        }
+    });
       console.log("✅ Compression Completed!");
     } catch (error) {
       console.error("❌ Error in compression:", error);

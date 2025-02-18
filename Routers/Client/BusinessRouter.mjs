@@ -51,4 +51,5 @@ BusinessRouter.put("/",
 BusinessRouter.get("/types",Business.getBusinessTypes)
 BusinessRouter.get("/:userId",Business.getBusinessOfUser)
 BusinessRouter.put("/update_request",Business.updateRequest)
+BusinessRouter.get("/update_request/:user_id",Business.getBusinessUpdateRequest)
 export default BusinessRouter;

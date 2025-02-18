@@ -291,15 +291,15 @@ class Address {
 
     static updateRequest = async (req, res) => {
         try {
-            const { remark, address_id } = req.body;
-            if (!remark || !address_id) {
+            const { remark, user_id } = req.body;
+            if (!remark || !user_id) {
                 return res.status(400).json({
                     status: false,
                     message: "Data Missing"
                 })
             }
 
-            const [updated_address] = await pool.query(`UPDATE Address set address_remark = ?,update_request = "Submitted" where address_id = ?`, [remark, address_id])
+            const [updated_address] = await pool.query(`UPDATE Address set address_remark = ?,update_request = "Submitted" where user_id = ?`, [remark, user_id])
 
             return res.status(200).json({
                 status: true,

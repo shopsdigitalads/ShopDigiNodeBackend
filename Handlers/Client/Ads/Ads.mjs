@@ -56,8 +56,10 @@ class Ads {
 
     static upload = async (req, res) => {
         try {
-            const { camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id } = req.body
-            if (!ad_type || !ad_goal || !start_date || !end_date || !business_type_id || !user_id || !name || !req.file) {
+            const { camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id,is_self_ad } = req.body
+            console.log(camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id,is_self_ad )
+            if (!ad_type || !ad_goal || !start_date || !end_date || !business_type_id || !user_id || !name || !req.file || !is_self_ad)  {
+                console.log("here")
                 return res.status(400).json({
                     status: false,
                     message: "Data Missing"
@@ -93,7 +95,7 @@ class Ads {
 
 
             const [advertisement] = await pool.query(
-                `INSERT INTO Advertisement (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id,ad_campaign_name,is_optimize) VALUES(?,?,?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, camp_name,is_optimize]
+                `INSERT INTO Advertisement (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id,ad_campaign_name,is_optimize,is_self_ad) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, camp_name,is_optimize,is_self_ad]
             )
 
             if (advertisement.affectedRows === 1) {
@@ -403,7 +405,7 @@ class Ads {
                 ON ads.business_type_id = bt.business_type_id
             LEFT JOIN AdvertisementBill AS ab 
                 ON ads.ads_id = ab.ads_id
-            WHERE ads.user_id = ?
+            WHERE ads.user_id = ? and ads.is_self_ad = 0
             ORDER BY ads.ads_id DESC;
                 `,
                 [user_id]
@@ -597,6 +599,41 @@ class Ads {
             })
         }
     }
+
+
+    static getSelfAdsOfUser = async (req, res) => {
+        try {
+            const { user_id } = req.params;
+            console.log("here")
+            // Query to fetch advertisements of the user
+            const [self_ads] = await pool.query(
+                `
+                SELECT 
+                ads.*, 
+                bt.business_type_name 
+            FROM Advertisement AS ads
+            LEFT JOIN BusinessType AS bt 
+                ON ads.business_type_id = bt.business_type_id
+            WHERE ads.user_id = ? and ads.is_self_ad = 1
+            ORDER BY ads.ads_id DESC;
+                `,
+                [user_id]
+            );
+
+            res.status(200).json(
+                {
+                    status: true,
+                    self_ads: self_ads
+                }
+            );
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({
+                status: false,
+                message: "An error occurred while fetching advertisements."
+            });
+        }
+    };
 
 }
 

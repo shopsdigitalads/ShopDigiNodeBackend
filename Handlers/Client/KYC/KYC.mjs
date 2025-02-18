@@ -206,15 +206,15 @@ class KYC {
 
     static updateRequest = async(req,res)=>{
         try {
-          const {remark,kyc_id} = req.body;
-          if(!remark || !kyc_id){
+          const {remark,user_id} = req.body;
+          if(!remark || !user_id){
             return res.status(400).json({
               status:false,
               message:"Data Missing"
             })
           }
     
-          const [update_kyc] = await pool.query(`UPDATE KYC set kyc_remark = ?,update_request = "Submitted" where kyc_id = ?`,[remark,kyc_id])
+          const [update_kyc] = await pool.query(`UPDATE KYC set kyc_remark = ?,update_request = "Submitted" where user_id = ?`,[remark,user_id])
     
           return res.status(200).json({
             status:true,

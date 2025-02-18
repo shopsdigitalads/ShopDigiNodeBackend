@@ -206,7 +206,7 @@ class Business {
                     c.client_business_name,
                     c.client_business_status,
                     c.client_business_remark,
-                    c.update_request as business_update,
+                    c.business_type_id,
                     a.address_id,
                     a.pin_code,
                     a.area,
@@ -269,6 +269,7 @@ console.log(last_7_days_income[0].total_earning_last_7_days)
                         client_business_id: business.client_business_id,
                         client_business_remark: business.client_business_remark,
                         business_type_name: business.business_type_name,
+                        business_type_id:business.business_type_id,
                         business_update:business.business_update,
                         client_business_status: business.client_business_status,
                         address_id:business.address_id,
@@ -281,21 +282,7 @@ console.log(last_7_days_income[0].total_earning_last_7_days)
                         address_line:business.address_line,
                         displays: [],
                     };
-                    console.log({
-                        client_business_name: business.client_business_name,
-                        client_business_id: business.client_business_id,
-                        client_business_remark: business.client_business_remark,
-                        business_type_name: business.business_type_name,
-                        business_update:business.business_update,
-                        client_business_status: business.client_business_status,
-                        address_id:business.address_id,
-                        pin_code:business.pin_code,
-                        area:business.area,
-                        cluster:business.cluster,
-                        district:business.district,
-                        state:business.state,
-                        displays: [],
-                    })
+                    
                     // Only add the display if display_id is not null or undefined
                     if (business.display_id != null) {
                         const display = {
@@ -391,6 +378,45 @@ console.log(last_7_days_income[0].total_earning_last_7_days)
           return res.status(500).json({
             status:false,
             message:"Internal Server Errro"
+          })
+        }
+      }
+
+
+      static getBusinessUpdateRequest = async (req, res) => {
+        try {
+          const { user_id } = req.params;
+    
+          if (!user_id) {
+            return res.status(400).json({
+              status: false,
+              message: "Data Missing"
+            })
+          }
+          const [business] = await pool.query(`
+            SELECT 
+              b.client_business_id, 
+              b.client_business_name, 
+              b.client_business_status, 
+              b.update_request, 
+              bt.business_type_name 
+            FROM ClientBusiness AS b 
+            JOIN BusinessType AS bt ON b.business_type_id = bt.business_type_id 
+            WHERE b.user_id = ?`, [user_id]);
+          
+    
+          return res.status(200).json({
+            status: true,
+            message: "business Fetch Successfully",
+            business: business
+          })
+    
+    
+        } catch (error) {
+          console.log(error)
+          return res.status(500).json({
+            status: false,
+            message: "Internal Server Error",
           })
         }
       }

@@ -117,7 +117,7 @@ class Display {
 
 
 
-      const allowed_fields = ['display_type_id', 'client_business_id',"update_request"];
+      const allowed_fields = ['display_type_id', 'client_business_id', "update_request"];
 
       if (!update_field.every(field => allowed_fields.includes(field))) {
         return res.status(400).json({
@@ -330,7 +330,7 @@ on b.business_type_id = a.business_type_id
            AND (a.start_date <= ? AND a.end_date >= ?) AND (a.ad_status = "Approved" OR ad_status = "Published");`,
         [display_id, date, date]
       );
-      
+
       console.log(ads_list)
       return res.status(200).json({
         status: true,
@@ -347,31 +347,60 @@ on b.business_type_id = a.business_type_id
     }
   };
 
-  static updateRequest = async(req,res)=>{
+  static updateRequest = async (req, res) => {
     try {
-      const {remark,display_id} = req.body;
-      if(!remark || !display_id){
+      const { remark, display_id } = req.body;
+      if (!remark || !display_id) {
         return res.status(400).json({
-          status:false,
-          message:"Data Missing"
+          status: false,
+          message: "Data Missing"
         })
       }
 
-      const [update_display] = await pool.query(`UPDATE Display set display_remark = ?,update_request = "Submitted" where display_id = ?`,[remark,display_id])
+      const [update_display] = await pool.query(`UPDATE Display set display_remark = ?,update_request = "Submitted" where display_id = ?`, [remark, display_id])
 
       return res.status(200).json({
-        status:true,
-        message:"Request Submitted"
+        status: true,
+        message: "Request Submitted"
       })
     } catch (error) {
       console.log(error)
       return res.status(500).json({
-        status:false,
-        message:"Internal Server Errro"
+        status: false,
+        message: "Internal Server Errro"
       })
     }
   }
 
+  static getDisplayUpdateRequest = async (req, res) => {
+    try {
+      const { user_id } = req.params;
+
+      if (!user_id) {
+        return res.status(400).json({
+          status: false,
+          message: "Data Missing"
+        })
+      }
+      const [display] = await pool.query(`
+        
+        Select d.display_id, d.update_request, d.display_status, b.client_business_id, b.client_business_name from Display as d join ClientBusiness as b  on d.client_business_id = b.client_business_id  where user_id = ?`, [user_id])
+
+      return res.status(200).json({
+        status: true,
+        message: "Display Fetch Successfully",
+        display: display
+      })
+
+
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({
+        status: false,
+        message: "Internal Server Error",
+      })
+    }
+  }
 
 }
 

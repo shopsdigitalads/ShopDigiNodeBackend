@@ -16,6 +16,7 @@ import DisplayEarningRouter from './Routers/Display/DisplayRouter.mjs';
 import LeadsRouter from './Routers/Employee/LeadsRouter.mjs';
 import NotificationRouter from './Routers/Notification/NotificationRouter.mjs';
 import VideoRouter from './Routers/Video/VideoRouter.mjs';
+import AdminRouter from './Routers/Admin/AdminRouter.mjs';
 
 
 dotenv.config();
@@ -62,6 +63,8 @@ app.use("/leads",LeadsRouter)
 app.use("/notification",NotificationRouter)
 
 app.use("/video",VideoRouter)
+
+app.use("/admin",AdminRouter)
 
 const PORT = 5000;
 

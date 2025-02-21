@@ -533,8 +533,7 @@ class Ads {
             const [displays] = await pool.query(
                 `select
                     ad.display_id,
-                    d.display_img,
-                    d.display_video,
+                    d.youtube_video_link,
                     dt.display_type,
                     c.client_business_name 
                     from AdvertisementDisplay as ad
@@ -553,9 +552,8 @@ class Ads {
             const result = displays.reduce((acc, row) => {
                 const {
                     client_business_name,
+                    youtube_video_link,
                     display_id,
-                    display_img,
-                    display_video,
                     display_type,
                 } = row;
 
@@ -574,10 +572,9 @@ class Ads {
                 // Add the display details under the respective display type
                 acc[client_business_name][display_type].push({
                     display_id,
-                    display_img,
-                    display_video,
+                    youtube_video_link
                 });
-
+                console.log(acc)
                 return acc;
             }, {});
 

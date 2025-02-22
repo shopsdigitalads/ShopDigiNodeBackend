@@ -34,7 +34,8 @@ KYCRouter.post('/',
         {name:'adhar_front_img',maxCount:1},
         {name:"adhar_back_img",maxCount:1},
         {name:"pan_img",maxCount:1},
-        {name:"bank_proof_img",maxCount:1}
+        {name:"bank_proof_img",maxCount:1},
+        {name:"profile",maxCount:1}
     ]),KYC.applyForKYC
 )
 
@@ -43,7 +44,8 @@ KYCRouter.put('/',
         {name:'adhar_front_img',maxCount:1},
         {name:"adhar_back_img",maxCount:1},
         {name:"pan_img",maxCount:1},
-        {name:"bank_proof_img",maxCount:1}
+        {name:"bank_proof_img",maxCount:1},
+        {name:"profile",maxCount:1}
     ]),KYC.updateKYC
 )
 

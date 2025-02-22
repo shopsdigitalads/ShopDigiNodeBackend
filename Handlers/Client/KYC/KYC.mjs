@@ -30,7 +30,7 @@ class KYC {
 
             const files = req.files || {};
             const req_files = [
-                'adhar_front_img', 'adhar_back_img', 'pan_img', 'bank_proof_img'
+                'adhar_front_img', 'adhar_back_img', 'pan_img', 'bank_proof_img',"profile"
             ]
 
             const file_path = {};
@@ -62,6 +62,7 @@ class KYC {
             ];
 
             const [kyc] = await pool.query(query, values);
+            const [u] = await pool.query(`UPDATE Users set profile = ? where user_id = ?`,[file_path['profile'],user_id])
             console.log(kyc)
             if (kyc.affectedRows === 1) {
                 return res.status(201).json({
@@ -111,7 +112,7 @@ class KYC {
                 });
             }
 
-            const allowed_update_imgs = ['adhar_front_img', 'adhar_back_img', 'pan_img', 'bank_proof_img'];
+            const allowed_update_imgs = ['adhar_front_img', 'adhar_back_img', 'pan_img', 'bank_proof_img','profile'];
             const received_fields = Object.keys(req.files);
 
             const valid_files = {};
@@ -143,18 +144,20 @@ class KYC {
                     }
                 }
             }
-
+            i_files.pop()
             const final_fields = update_field.concat(i_files);
             const update_query = final_fields.map(field => `${field} = ?`).join(", ");
             const query = `UPDATE KYC SET ${update_query} WHERE user_id = ?`;
 
-         
+            console.log(file_path)
+            const profile_path = file_path[4]
+            file_path.pop()
             const final_data = update_data.concat(file_path);
             final_data.push(user_id);
 
             const [updated_kyc] = await pool.query(query, final_data);
 
-
+            const [u] = await pool.query(`UPDATE Users set profile = ? where user_id = ?`,[profile_path,user_id])
             console.log(updated_kyc.affectedRows);
             if (updated_kyc.affectedRows !== 1) {
                 console.log("here");

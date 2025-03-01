@@ -8,10 +8,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 class AdminAds {
   static getAdminAds = async (req, res) => {
     try {
-      const [rows] = await pool.query("SELECT filename, filetype FROM uploads");
+      const [rows] = await pool.query(`SELECT filename, filetype FROM uploads where ads_type = 'app'`);
       const ads = []
       for (const row of rows) {
-        const filePath = path.join(__dirname, "../../../../admin/website_ads/", row.filename);
+        const filePath = path.join(__dirname, "../../../../admin/app_ads/", row.filename);
 
         if (fs.existsSync(filePath)) {
             const fileBuffer = fs.readFileSync(filePath);

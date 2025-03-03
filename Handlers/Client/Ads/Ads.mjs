@@ -41,7 +41,7 @@ class Ads {
         }
     }
 
-     static getFileSizeInMB = (filePath) => {
+    static getFileSizeInMB = (filePath) => {
         return new Promise((resolve, reject) => {
             fs.stat(filePath, (err, stats) => {
                 if (err) {
@@ -56,9 +56,9 @@ class Ads {
 
     static upload = async (req, res) => {
         try {
-            const { camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id,is_self_ad } = req.body
-            console.log(camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id,is_self_ad )
-            if (!ad_type || !ad_goal || !start_date || !end_date || !business_type_id || !user_id || !name || !req.file || !is_self_ad)  {
+            const { camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id, is_self_ad } = req.body
+            console.log(camp_name, ad_type, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, name, emp_id, is_self_ad)
+            if (!ad_type || !ad_goal || !start_date || !end_date || !business_type_id || !user_id || !name || !req.file || !is_self_ad) {
                 console.log("here")
                 return res.status(400).json({
                     status: false,
@@ -95,7 +95,7 @@ class Ads {
 
 
             const [advertisement] = await pool.query(
-                `INSERT INTO Advertisement (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id,ad_campaign_name,is_optimize,is_self_ad) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, camp_name,is_optimize,is_self_ad]
+                `INSERT INTO Advertisement (ad_type,ad_path,ad_description,ad_goal,start_date,end_date,business_type_id,user_id,emp_id,ad_campaign_name,is_optimize,is_self_ad) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`, [ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, camp_name, is_optimize, is_self_ad]
             )
 
             if (advertisement.affectedRows === 1) {
@@ -191,7 +191,7 @@ class Ads {
             if (add_action == "Update") {
                 const updated_ad = await pool.query(
                     `UPDATE Advertisement SET ad_type = ?, ad_path = ?, ad_status = "On Review",is_optimize = ? where ads_id = ?  
-                    `, [ad_type, ad_path,is_optimize, ad_id]
+                    `, [ad_type, ad_path, is_optimize, ad_id]
                 )
             } else {
                 const old_ad_id = ad_id
@@ -202,7 +202,7 @@ class Ads {
                 const [advertisement] = await pool.query(
                     `INSERT INTO Advertisement (ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, ad_campaign_name,is_optimize) 
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`,
-                    [ad_type, ad_path, ad_description, ad_goal, formattedStartDate, formattedEndDate, business_type_id, user_id, emp_id, camp_name,is_optimize]
+                    [ad_type, ad_path, ad_description, ad_goal, formattedStartDate, formattedEndDate, business_type_id, user_id, emp_id, camp_name, is_optimize]
                 );
 
                 const new_ad_id = advertisement.insertId
@@ -248,16 +248,21 @@ class Ads {
                     message: "Data Missing",
                 });
             }
-
+            const [ad] = await pool.query("SELECT end_date FROM Advertisement WHERE ads_id = ?", [ad_id]);
+            const processStartDate = ad[0].end_date;
+            const processEndDate = new Date(processStartDate);
+            processEndDate.setDate(processEndDate.getDate() + 7);
 
             const values = displays.map((display_id) => [
                 display_id,
                 ad_id,
+                processStartDate,
+                processEndDate.toISOString().split("T")[0] // Formatting as YYYY-MM-DD
             ]);
 
             // Bulk insert query
             const [result] = await pool.query(
-                `INSERT IGNORE INTO AdvertisementDisplay (display_id, ads_id) VALUES ?`,
+                `INSERT IGNORE INTO AdvertisementDisplay (display_id, ads_id, process_start_date, process_end_date) VALUES ?`,
                 [values]
             );
 

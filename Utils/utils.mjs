@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken'
 import nodemailer from 'nodemailer'
 import bcrypt from 'bcrypt'
+import axios from 'axios';
 
 class Utils {
     static raeson = [
@@ -39,8 +40,11 @@ class Utils {
     
     static sendToMobile = async (mobile, otp) => {
         try {
-            await this.sendToMail("swaransh0701@gmail.com",otp)
-            console.log(`OTP sent to mobile ${mobile}: ${otp}`);
+            
+            const URL = `https://sms.renflair.in/V1.php?API=${ process.env.SMS_API_KEY}&PHONE=${mobile}&OTP=${otp}`;
+            const response = await axios.get(URL);
+            const data = response.data;
+            console.log(data);
             return true;
         } catch (error) {
             console.error("Error sending OTP to mobile:", error);

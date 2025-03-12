@@ -12,6 +12,9 @@ class Display{
           message: "Invalid or missing display status data"
         });
       }
+      console.log(display_status);
+      console.log(ad_count);
+      console.log(display_id);
   
       if (!display_id || !ad_count) {
         return res.status(400).json({
@@ -20,10 +23,7 @@ class Display{
         });
       }
   
-      console.log(display_status);
-      console.log(ad_count);
-      console.log(display_id);
-  
+     
       const [charges] = await pool.query(
         `SELECT dt.display_charge, dt.client_charge
          FROM Display AS d

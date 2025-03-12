@@ -189,7 +189,7 @@ class Ads {
             const ad_path = path.relative(path.resolve(__dirname, "../../../../"), new_path);
 
             if (add_action == "Update") {
-                const updated_ad = await pool.query(
+                await pool.query(
                     `UPDATE Advertisement SET ad_type = ?, ad_path = ?, ad_status = "On Review",is_optimize = ? where ads_id = ?  
                     `, [ad_type, ad_path, is_optimize, ad_id]
                 )
@@ -206,21 +206,14 @@ class Ads {
                 );
 
                 const new_ad_id = advertisement.insertId
-                const [location] = await pool.query(`
+                await pool.query(`
                     INSERT IGNORE INTO AdvertisementLocation (address_id, ads_id)
                     SELECT address_id, ? FROM AdvertisementLocation WHERE ads_id = ?;
                     `, [new_ad_id, old_ad_id])
-                const [display] = await pool.query(`
+                await pool.query(`
                     INSERT IGNORE INTO AdvertisementDisplay(display_id, ads_id)
                     SELECT display_id, ? FROM AdvertisementDisplay WHERE ads_id = ?;
                     `, [new_ad_id, old_ad_id])
-                console.log(old_ad_id)
-                const [AdvertisementBill] = await pool.query(`
-                        INSERT INTO AdvertisementBill (ad_amt, total_amt, paid_amt, ad_bill_status, ads_id, invoice_id) 
-                        SELECT ad_amt, total_amt, paid_amt, ad_bill_status, ?, invoice_id 
-                        FROM AdvertisementBill WHERE ads_id = ?;
-                    `, [new_ad_id, old_ad_id]);
-
 
             }
 
@@ -240,7 +233,7 @@ class Ads {
 
     static addAdDisplay = async (req, res) => {
         try {
-            const { displays, ad_id } = req.body;
+            const { displays, ad_id, discount } = req.body;
             console.log(displays, ad_id);
             if (!displays || !ad_id || !Array.isArray(displays)) {
                 return res.status(400).json({
@@ -266,7 +259,7 @@ class Ads {
                 [values]
             );
 
-            const calculation = await this.getDisplayCostCalculation(ad_id)
+            const calculation = await this.getDisplayCostCalculation(ad_id, discount)
 
             console.log(calculation)
             const bill = await this.createInvoice(ad_id, calculation.total_cost, calculation.display_charge);
@@ -287,7 +280,7 @@ class Ads {
         }
     };
 
-    static getDisplayCostCalculation = async (ad_id) => {
+    static getDisplayCostCalculation = async (ad_id, discount) => {
         try {
             const [no_of_days] = await pool.query(`
                 select SUM(DATEDIFF(A.end_date, A.start_date) + 1) AS total_days 
@@ -334,23 +327,27 @@ class Ads {
         }
     }
 
-    static createInvoice = async (ad_id, total_cost, display_charge) => {
+    static createInvoice = async (ad_id, total_cost, display_charge, gst = 18, discount = 0) => {
         try {
-            // Insert into Invoice table
-            const [invoice] = await pool.query(
-                `INSERT IGNORE INTO Invoice (total_charge, ads_id) VALUES (?, ?)`,
-                [total_cost, ad_id]
-            );
+            // Check if an invoice already exists for the given ad_id
+            let [invoice] = await pool.query(`SELECT invoice_id FROM Invoice WHERE ads_id = ?`, [ad_id]);
 
-            // If no new invoice is created, return early
-            if (invoice.affectedRows === 0) {
-                return {
-                    status: false,
-                    message: "Invoice already exists for this ad."
-                };
+            let invoice_id;
+            if (invoice.length === 0) {
+                // Insert into Invoice table if not exists
+                const [insertResult] = await pool.query(
+                    `INSERT INTO Invoice (total_charge, ad_amt, gst, discount, ads_id) VALUES (?, ?, ?, ?, ?)`,
+                    [total_cost, total_cost, gst, discount, ad_id]
+                );
+                invoice_id = insertResult.insertId; // Get inserted ID
+            } else {
+                invoice_id = invoice[0].invoice_id;
+                // Update existing invoice
+                await pool.query(
+                    `UPDATE Invoice SET total_charge = ?, ad_amt = ? WHERE invoice_id = ?`,
+                    [total_cost, total_cost, invoice_id]
+                );
             }
-
-            const invoice_id = invoice.insertId;
 
             // Prepare data for InvoiceDetail
             const invoice_details = display_charge.map((display) => [
@@ -362,27 +359,20 @@ class Ads {
                 invoice_id
             ]);
 
-            // Insert multiple rows into InvoiceDetail
-            await pool.query(
-                `INSERT INTO InvoiceDetail 
-                    (display_type_id, display_charge, no_of_display, no_of_days, total_charge, invoice_id) 
-                 VALUES ?`,
-                [invoice_details]
-            );
-
-            // Insert into AdvertisementBill
-            const [bill] = await pool.query(
-                `INSERT INTO AdvertisementBill 
-                    (ad_amt, total_amt, paid_amt, ad_bill_status, ads_id, invoice_id) 
-                 VALUES (?, ?, ?, ?, ?, ?)`,
-                [total_cost, total_cost, 0, "Unpaid", ad_id, invoice_id]
-            );
+            if (invoice_details.length > 0) {
+                // Insert multiple rows into InvoiceDetail
+                await pool.query(
+                    `INSERT INTO InvoiceDetail 
+                     (display_type_id, display_charge, no_of_display, no_of_days, total_charge, invoice_id) 
+                     VALUES ?`,
+                    [invoice_details] // Ensure it's passed as an array of arrays
+                );
+            }
 
             // Return success response
             return {
                 status: true,
-                invoice_id: invoice_id,
-                ad_bill_id: bill.insertId
+                invoice_id: invoice_id
             };
 
         } catch (error) {
@@ -393,6 +383,7 @@ class Ads {
             };
         }
     };
+
 
     static getAdsOfUser = async (req, res) => {
         try {

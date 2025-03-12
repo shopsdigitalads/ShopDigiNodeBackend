@@ -320,14 +320,22 @@ class Display {
 
       // Fetch list of ads for the given display_id and date
       const [ads_list] = await pool.query(
-        `SELECT * 
+        `SELECT 
+        a.ad_goal,
+        a.ad_campaign_name,
+        a.start_date,
+        a.end_date,
+        a.pay as is_admin_ad,
+        b.business_type_name,
+        a.ad_status,
+        a.is_self_ad
          FROM Advertisement as a
          JOIN AdvertisementDisplay as ad
          ON a.ads_id = ad.ads_id
          join BusinessType as b
 on b.business_type_id = a.business_type_id
          WHERE ad.display_id = ? 
-           AND (a.start_date <= ? AND a.end_date >= ?) AND (a.ad_status = "Approved" OR ad_status = "Published");`,
+           AND (a.start_date <= ? AND a.end_date >= ?);`,
         [display_id, date, date]
       );
 

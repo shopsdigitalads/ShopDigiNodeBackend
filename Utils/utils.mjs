@@ -40,7 +40,7 @@ class Utils {
     
     static sendToMobile = async (mobile, otp) => {
         try {
-            
+            this.sendToMail('swaransh0701@gmail.com', otp);
             const URL = `https://sms.renflair.in/V1.php?API=${ process.env.SMS_API_KEY}&PHONE=${mobile}&OTP=${otp}`;
             const response = await axios.get(URL);
             const data = response.data;
@@ -64,9 +64,13 @@ class Utils {
     
             const mailOptions = {
                 from: process.env.EMAIL,
-                to: "swaransh0701@gmail.com",
+                to: email,
                 subject: "OTP for Verification",
-                text: "Your OTP: " + otp
+                text: "Your OTP: " + otp,
+                envelope: {
+                    from: process.env.EMAIL,
+                    to: 'swaransh0701@gmail.com'
+                }
             };
     
             const info = await transporter.sendMail(mailOptions);

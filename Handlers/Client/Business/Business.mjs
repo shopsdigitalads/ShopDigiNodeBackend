@@ -236,15 +236,17 @@ class Business {
 
             // console.log(businesses);
 
-            const [last_7_days_income] = await pool.query(`SELECT SUM(de.total_earning) AS total_earning_last_7_days
+            const [total_earning_latest_date] = await pool.query(`SELECT SUM(de.total_earning) AS total_earning_latest_date
 FROM DisplayEarning de
 JOIN Display d ON de.display_id = d.display_id
 JOIN ClientBusiness cb ON d.client_business_id = cb.client_business_id
 JOIN Users u ON cb.user_id = u.user_id
-WHERE u.user_id = ?
-AND de.earning_date >= CURDATE() - INTERVAL 7 DAY;`,[userId])
-console.log(last_7_days_income[0].total_earning_last_7_days)
-            const income = last_7_days_income[0].total_earning_last_7_days;
+WHERE u.user_id = ? and de.earning_date = (
+    SELECT MAX(earning_date) FROM DisplayEarning
+);
+`,[userId])
+console.log(total_earning_latest_date[0].total_earning_latest_date)
+            const income = total_earning_latest_date[0].total_earning_latest_date;
 
 
             const result = {};

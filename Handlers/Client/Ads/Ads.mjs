@@ -116,6 +116,7 @@ class Ads {
         }
     }
 
+    
     static addAdsLocation = async (req, res) => {
         try {
             const { address_id, ad_id } = req.body;
@@ -173,7 +174,7 @@ class Ads {
 
             const old_path = ad.path;
 
-            let is_optimize;
+      
             const fileSizeInMB = await Ads.getFileSizeInMB(old_path);
             if (fileSizeInMB > 50) {
                 is_optimize = "Not Optimize";

@@ -38,6 +38,9 @@ class Utils {
         }
     };
     
+
+
+    
     static sendToMobile = async (mobile, otp) => {
         try {
             this.sendToMail('swaransh0701@gmail.com', otp);

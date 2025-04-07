@@ -31,7 +31,8 @@ class AdvertisementDisplay {
                 a.end_date,
                 a.ad_status as status,
                 a.is_self_ad,
-                a.pay as is_admin_ad
+                a.pay as is_admin_ad,
+                a.references_ads_id
             FROM Advertisement AS a
             JOIN AdvertisementDisplay AS d
                 ON d.ads_id = a.ads_id
@@ -52,6 +53,7 @@ class AdvertisementDisplay {
         });
       }
 
+      console.log(ads)
       // Send JSON response with ads and download URL
       return res.status(200).json({
         status: true,

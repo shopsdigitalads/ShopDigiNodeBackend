@@ -174,7 +174,7 @@ class Ads {
 
             const old_path = ad.path;
 
-      
+            let is_optimize;
             const fileSizeInMB = await Ads.getFileSizeInMB(old_path);
             if (fileSizeInMB > 50) {
                 is_optimize = "Not Optimize";
@@ -201,9 +201,9 @@ class Ads {
                 const formattedEndDate = new Date(end_date).toISOString().slice(0, 19).replace("T", " ");
 
                 const [advertisement] = await pool.query(
-                    `INSERT INTO Advertisement (ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, ad_campaign_name,is_optimize) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)`,
-                    [ad_type, ad_path, ad_description, ad_goal, formattedStartDate, formattedEndDate, business_type_id, user_id, emp_id, camp_name, is_optimize]
+                    `INSERT INTO Advertisement (ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, ad_campaign_name,is_optimize,references_ads_id) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)`,
+                    [ad_type, ad_path, ad_description, ad_goal, formattedStartDate, formattedEndDate, business_type_id, user_id, emp_id, camp_name, is_optimize,old_ad_id]
                 );
 
                 const new_ad_id = advertisement.insertId

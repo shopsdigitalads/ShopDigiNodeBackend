@@ -199,7 +199,10 @@ class Ads {
                 const today = new Date();
                 const formattedStartDate = today.toISOString().slice(0, 19).replace("T", " ");
                 const formattedEndDate = new Date(end_date).toISOString().slice(0, 19).replace("T", " ");
-
+                await pool.query(
+                    `UPDATE Advertisement SET ad_status = "Expire" where ads_id = ?  
+                    `, [ad_id]
+                )
                 const [advertisement] = await pool.query(
                     `INSERT INTO Advertisement (ad_type, ad_path, ad_description, ad_goal, start_date, end_date, business_type_id, user_id, emp_id, ad_campaign_name,is_optimize,references_ads_id) 
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?,?)`,

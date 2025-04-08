@@ -10,7 +10,7 @@ class AdvertisementDisplay {
   static fetchAdsForDisplay = async (req, res) => {
     try {
       const { display_id, ads_ids } = req.body;
-
+      console.log(ads_ids)
       // Validate input parameters
       if (!display_id || !Array.isArray(ads_ids)) {
         return res.status(400).json({
@@ -46,17 +46,26 @@ class AdvertisementDisplay {
       // Execute query
       const [ads] = await pool.query(query, [display_id, ...ads_ids]);
 
-      if (ads.length === 0) {
-        return res.status(400).json({
-          status: false,
-          message: "No ads found",
-        });
-      }
+      const radsIdsCondition = ads_ids.length > 0 ? `AND a.ads_id IN (${ads_ids.map(() => '?').join(',')})` : '';
+      const reject_ad_query = `
+            SELECT
+                a.ads_id
+            FROM Advertisement AS a
+            WHERE a.ad_status = "Rejected" ${radsIdsCondition}
+                 ;
+        `;
 
-      console.log(ads)
-      // Send JSON response with ads and download URL
+      console.log(reject_ad_query)
+      const [rejected_ads] = await pool.query(reject_ad_query,[...ads_ids])
+
+      console.log(rejected_ads)
+
+
+
       return res.status(200).json({
         status: true,
+        ads_download:!ads.length ===0,
+        reject_ads:rejected_ads,
         message: "Ads fetched successfully",
         ads: ads,
       });

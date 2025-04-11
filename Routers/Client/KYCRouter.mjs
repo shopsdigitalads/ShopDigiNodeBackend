@@ -9,22 +9,25 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const upload = multer({
-    storage:multer.diskStorage({
-        destination:(req,file,cb)=>{
-            cb(null,path.resolve(__dirname,'../../Media/Client'));
+    storage: multer.diskStorage({
+        destination: (req, file, cb) => {
+            cb(null, path.resolve(__dirname, '../../Media/Client'));
         },
-        filename:(req,file,cb)=>{
-            cb(null,file.originalname);
+        filename: (req, file, cb) => {
+            const ext = path.extname(file.originalname);
+            const baseName = path.basename(file.originalname, ext);
+            const uniqueName = `${baseName}-${Date.now()}${ext}`;
+            cb(null, uniqueName);
         }
     }),
-    fileFilter(req,file,cb){
-        if(file.mimetype.startsWith('image/')){
-            cb(null,true);
-        }else{
-            cb(null,false)
+    fileFilter(req, file, cb) {
+        if (file.mimetype.startsWith('image/')) {
+            cb(null, true);
+        } else {
+            cb(null, false);
         }
     }
-})
+});
 
 
 const KYCRouter = express.Router();

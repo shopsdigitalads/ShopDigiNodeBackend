@@ -19,7 +19,7 @@ This project consists of the following components:
   - Income tracking for displays
   - Admin panel for approvals and user management
   - REST APIs for Flutter apps
-- **GitHub**: [Backend Repository](https://github.com/your-username/ShopsDigitalAds-Backend)
+- **GitHub**: [Backend Repository](https://github.com/shopsdigitalads/ShopDigiNodeBackend)
 
 ### 2. Mobile App (Flutter)
 - **Platform**: Android & iOS
@@ -29,7 +29,7 @@ This project consists of the following components:
   - Upload and manage ad campaigns
   - View earnings generated from ads running on personal displays
   - Track ad status and expiry
-- **GitHub**: [Mobile App Repository](https://github.com/your-username/ShopsDigitalAds-Mobile)
+- **GitHub**: [Mobile App Repository](https://github.com/shopsdigitalads/ShopDigiApp)
 
 ### 3. Android TV App (Flutter)
 - **Platform**: Android TV
@@ -37,7 +37,7 @@ This project consists of the following components:
   - Syncs and downloads approved ads for offline playback
   - Plays ads in a loop until their expiry
   - Designed for full-screen immersive ad display
-- **GitHub**: [TV App Repository](https://github.com/your-username/ShopsDigitalAds-TV)
+- **GitHub**: [TV App Repository](https://github.com/shopsdigitalads/SDA-VIDEO-APP)
 
 ---
 

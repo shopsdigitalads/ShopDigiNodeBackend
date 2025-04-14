@@ -87,13 +87,13 @@ class Display{
             `UPDATE DisplayEarning 
              SET total_earning = ?, fine = ?, earning = ?, ad_count = ?, active_time = ?, inactive_time = ? 
              WHERE display_id = ? AND earning_date = ?`,
-            [earning+fine, fine, earning, ad_count, total_active, totalInactiveMinutes - total_active, display_id, date]
+            [fine - earning, fine, earning, ad_count, total_active, totalInactiveMinutes - total_active, display_id, date]
           );
         } else {
           await pool.query(
             `INSERT INTO DisplayEarning (active_time, inactive_time, earning_date, display_id, total_earning, fine, earning,ad_count) 
              VALUES (?, ?, ?, ?, ?, ?, ?,?)`,
-            [data[date].active_time, inactive_time, date, display_id, earning+fine, fine, earning,ad_count]
+            [data[date].active_time, inactive_time, date, display_id, fine - earning, fine, earning,ad_count]
           );
         }
       }

@@ -291,6 +291,13 @@ CREATE TABLE forgot_pass (
 
 
 CREATE TABLE Carsoul(
-    carsoul_id INT PRIMARY AUTO_INCREMENT,
+    carsoul_id INT PRIMARY KEY AUTO_INCREMENT,
     carsoul_path VARCHAR(400),
+)
+
+CREATE TABLE DisplayDiscount(
+    display_discount_id INT PRIMARY KEY AUTO_INCREMENT,
+    no_of_display INT,
+    discount DECIMAL(5, 2)
+    is_active Boolean DEFAULT false
 )

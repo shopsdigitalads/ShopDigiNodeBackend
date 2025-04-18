@@ -264,11 +264,14 @@ class Display {
         return acc;
       }, {});
 
+      const [discount] = await pool.query('Select no_of_display,discount from DisplayDiscount where is_active = True')
+
       console.log(result);
       return res.status(200).json({
         status: true,
         message: "Displays fetched successfully",
         data: result,
+        discount:discount
       });
     } catch (error) {
       console.error(error);
@@ -326,6 +329,8 @@ class Display {
         a.start_date,
         a.end_date,
         a.pay as is_admin_ad,
+        ad.process_end_date,
+        ad.pay_status,
         b.business_type_name,
         a.ad_status,
         a.is_self_ad
@@ -405,6 +410,25 @@ on b.business_type_id = a.business_type_id
       console.log(error)
       return res.status(500).json({
         status: false,
+        message: "Internal Server Error",
+      })
+    }
+  }
+
+  static getDisplayDiscount = async(req,res) =>{
+    try {
+      console.log("here")
+      const [discount] = await pool.query('Select no_of_display,discount from DisplayDiscount where is_active = True')
+
+      console.log(discount[0])
+      return res.status(200).json({
+        status : true,
+        disocunt:discount
+      })
+    } catch (error) {
+      console.log(error)
+      return res.status(500).json({
+        status : false,
         message: "Internal Server Error",
       })
     }

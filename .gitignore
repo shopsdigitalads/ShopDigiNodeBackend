@@ -23,5 +23,3 @@ build/
 # Ignore specific test or temp files (optional)
 TEST.js
 
-# Optional: Ignore database files if auto-generated
-*.sql

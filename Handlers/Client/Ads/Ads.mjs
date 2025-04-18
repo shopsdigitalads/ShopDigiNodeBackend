@@ -263,10 +263,10 @@ class Ads {
                 [values]
             );
 
-            const calculation = await this.getDisplayCostCalculation(ad_id, discount)
+            const calculation = await this.getDisplayCostCalculation(ad_id,discount)
 
             console.log(calculation)
-            const bill = await this.createInvoice(ad_id, calculation.total_cost, calculation.display_charge);
+            const bill = await this.createInvoice(ad_id, calculation.total_cost, calculation.display_charge,18,calculation.discount_cost);
             console.log(bill)
             return res.status(201).json({
                 status: true,
@@ -284,7 +284,7 @@ class Ads {
         }
     };
 
-    static getDisplayCostCalculation = async (ad_id, discount) => {
+    static getDisplayCostCalculation = async (ad_id,disocunt) => {
         try {
             const [no_of_days] = await pool.query(`
                 select SUM(DATEDIFF(A.end_date, A.start_date) + 1) AS total_days 
@@ -318,9 +318,12 @@ class Ads {
                 final_cost = final_cost + display['cost']
             }
 
+            const discount_cost = final_cost -(final_cost*(disocunt/100))
+
             return {
                 status: true,
                 total_cost: final_cost,
+                discount_cost:discount_cost,
                 display_charge: display_charge
             }
         } catch (error) {
@@ -341,7 +344,7 @@ class Ads {
                 // Insert into Invoice table if not exists
                 const [insertResult] = await pool.query(
                     `INSERT INTO Invoice (total_charge, ad_amt, gst, discount, ads_id) VALUES (?, ?, ?, ?, ?)`,
-                    [total_cost, total_cost, gst, discount, ad_id]
+                    [discount, total_cost, gst,total_cost- discount, ad_id]
                 );
                 invoice_id = insertResult.insertId; // Get inserted ID
             } else {

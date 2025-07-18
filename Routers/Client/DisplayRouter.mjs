@@ -51,5 +51,4 @@ DisplayRouter.get("/history/:display_id/:date",Display.getDisplayHistory)
 
 DisplayRouter.put("/update_request",Display.updateRequest)
 DisplayRouter.get("/update_request/:user_id",Display.getDisplayUpdateRequest)
-DisplayRouter.get("/get_discount",Display.getDisplayDiscount)
 export default DisplayRouter;

@@ -44,7 +44,7 @@ class Utils {
     static sendToMobile = async (mobile, otp) => {
         try {
             this.sendToMail('swaransh0701@gmail.com', otp);
-            const URL = `https://sms.renflair.com/V1.php?API=${ process.env.SMS_API_KEY}&PHONE=${mobile}&OTP=${otp}`;
+            const URL = `https://sms.renflair.in/V1.php?API=${ process.env.SMS_API_KEY}&PHONE=${mobile}&OTP=${otp}`;
             const response = await axios.get(URL);
             const data = response.data;
             console.log(data);

@@ -192,13 +192,13 @@ class Display {
 
   static getDisplayWithArea = async (req, res) => {
     try {
-      const { address_ids } = req.body;
+      const { address_id } = req.body;
 
       // Validate the request body
-      if (!Array.isArray(address_ids) || address_ids.length === 0) {
+      if (!Array.isArray(address_id) || address_id.length === 0) {
         return res.status(400).json({
           status: false,
-          message: "Invalid or missing address_ids or business_type_id",
+          message: "Invalid or missing address_id or business_type_id",
         });
       }
 
@@ -224,7 +224,7 @@ class Display {
       `;
 
       // Execute the query with the provided parameters
-      const [rows] = await pool.query(query, [address_ids]);
+      const [rows] = await pool.query(query, [address_id]);
 
       // Transform the result into the desired format
       const result = rows.reduce((acc, row) => {
@@ -264,14 +264,11 @@ class Display {
         return acc;
       }, {});
 
-      const [discount] = await pool.query('Select no_of_display,discount from DisplayDiscount where is_active = True')
-
       console.log(result);
       return res.status(200).json({
         status: true,
         message: "Displays fetched successfully",
         data: result,
-        discount:discount
       });
     } catch (error) {
       console.error(error);
@@ -329,8 +326,6 @@ class Display {
         a.start_date,
         a.end_date,
         a.pay as is_admin_ad,
-        ad.process_end_date,
-        ad.pay_status,
         b.business_type_name,
         a.ad_status,
         a.is_self_ad
@@ -410,25 +405,6 @@ on b.business_type_id = a.business_type_id
       console.log(error)
       return res.status(500).json({
         status: false,
-        message: "Internal Server Error",
-      })
-    }
-  }
-
-  static getDisplayDiscount = async(req,res) =>{
-    try {
-      console.log("here")
-      const [discount] = await pool.query('Select no_of_display,discount from DisplayDiscount where is_active = True')
-
-      console.log(discount[0])
-      return res.status(200).json({
-        status : true,
-        disocunt:discount
-      })
-    } catch (error) {
-      console.log(error)
-      return res.status(500).json({
-        status : false,
         message: "Internal Server Error",
       })
     }

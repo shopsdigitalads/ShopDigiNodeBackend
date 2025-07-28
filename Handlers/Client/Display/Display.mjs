@@ -206,6 +206,10 @@ class Display {
       const query = `
         SELECT 
           a.area,
+          a.cluster,
+          a.district,
+          a.state,
+          a.pin_code,
           c.client_business_name,
           d.display_id,
           d.display_img,
@@ -230,6 +234,10 @@ class Display {
       const result = rows.reduce((acc, row) => {
         const {
           area,
+          cluster,
+          district,
+          state,
+          pin_code,
           client_business_name,
           display_id,
           display_img,
@@ -256,6 +264,11 @@ class Display {
         // Add the display details under the respective display type
         acc[area][client_business_name][display_type].push({
           display_id,
+          area,
+          cluster,
+          district,
+          state,
+          pin_code,
           display_img,
           display_video,
           display_charge,

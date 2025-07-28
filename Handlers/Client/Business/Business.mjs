@@ -236,7 +236,7 @@ class Business {
 
             // console.log(businesses);
 
-            const [total_earning_latest_date] = await pool.query(`SELECT SUM(de.total_earning) AS total_earning_latest_date
+            const [total_earning_latest_date] = await pool.query(`SELECT SUM(de.earning) AS total_earning_latest_date
 FROM DisplayEarning de
 JOIN Display d ON de.display_id = d.display_id
 JOIN ClientBusiness cb ON d.client_business_id = cb.client_business_id

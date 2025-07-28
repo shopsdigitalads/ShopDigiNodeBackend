@@ -379,7 +379,7 @@ console.log(total_earning_latest_date[0].total_earning_latest_date)
           console.log(error)
           return res.status(500).json({
             status:false,
-            message:"Internal Server Errro"
+            message:"Internal Server Error"
           })
         }
       }

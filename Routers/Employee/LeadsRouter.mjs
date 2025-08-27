@@ -36,6 +36,7 @@ const LeadsRouter = express.Router()
 
 
 LeadsRouter.post("/", upload.single('visiting_card'),Leads.createLead)
-LeadsRouter.get("/",Leads.fetchSortedLeads)
+// LeadsRouter.get("/",Leads.fetchSortedLeads)
+LeadsRouter.get("/user", Leads.fetchUserLeads);
 
 export default LeadsRouter
